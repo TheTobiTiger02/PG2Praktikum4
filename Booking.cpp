@@ -17,7 +17,7 @@ Booking::~Booking() {
     std::cout << "Booking object destroyed" << std::endl;
 }
 
-const std::string &Booking::getId() const {
+std::string &Booking::getId() {
     return id;
 }
 

@@ -19,10 +19,10 @@
 class TravelAgency {
 private:
     //QMessageBox* msgBox;
-    std::vector<Booking *> allBookings;
-    std::vector<Customer *> allCustomers;
-    std::vector<Travel *> allTravels;
-    std::map<std::string, Airport*> iataCodes;
+    std::vector<std::shared_ptr <Booking>> allBookings;
+    std::vector<std::shared_ptr <Customer>> allCustomers;
+    std::vector<std::shared_ptr <Travel>> allTravels;
+    std::map<std::string, std::shared_ptr<Airport>> iataCodes;
 
 
 public:
@@ -30,27 +30,29 @@ public:
 
     void readFile(std::string filePath, int startRow = 0, int flightCount = 0, int hotelCount = 0, int carCount = 0,
                   int travelCount = 0, int customerCount = 0, double totalPrice = 0);
-    void readIataCodes(std::string filePath);
+    bool readIataCodes(std::string filePath);
 
-    Booking *findBooking(std::string id);
+    std::shared_ptr<Booking> findBooking(std::string id);
 
-    Travel *findTravel(long id);
+    std::shared_ptr<Travel> findTravel(long id);
 
-    Customer *findCustomer(long id);
+    std::shared_ptr<Customer> findCustomer(long id);
 
     int getTravelCount(long customerId);
 
     int getBookingCount(long travelId);
 
-    Airport* getAirport(std::string iataCode);
+    std::shared_ptr<Airport> getAirport(std::string iataCode);
 
-    const std::vector<Booking *> &getAllBookings() const;
+    const std::vector<std::shared_ptr<Booking >> &getAllBookings() const;
 
-    const std::vector<Customer *> &getAllCustomers() const;
+    const std::vector<std::shared_ptr<Customer >> &getAllCustomers() const;
 
-    const std::vector<Travel *> &getAllTravels() const;
+    const std::vector<std::shared_ptr<Travel >> &getAllTravels() const;
 
-    const std::vector<Booking *> &getBookings() const;
+    const std::vector<std::shared_ptr<Booking >> &getBookings() const;
+
+
 
 private slots:
 

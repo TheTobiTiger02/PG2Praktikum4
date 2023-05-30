@@ -19,12 +19,12 @@ class TravelAgencyUI : public QMainWindow {
 Q_OBJECT
 
 public:
-    TravelAgencyUI(TravelAgency *_travelAgency, QWidget *parent = nullptr);
+    TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWidget *parent = nullptr);
 
     ~TravelAgencyUI() override;
 
 
-    QIcon getBookingIcon(Booking *booking);
+    QIcon getBookingIcon(std::shared_ptr<Booking> booking);
 
     void loadTravels(long customerId);
 
@@ -40,10 +40,11 @@ private:
     enum bookingsColumnIndices {
         BOOKING_TYPE, BOOKING_START, BOOKING_END, BOOKING_PRICE
     };
-    std::map<int, Booking *> bookingIndices;
-    Booking *activeBooking;
-    QMessageBox *msgBox;
-    TravelAgency *travelAgency;
+    bool readIataCodes;
+    std::map<int, std::shared_ptr<Booking>> bookingIndices;
+    std::shared_ptr<Booking> activeBooking;
+    QMessageBox* msgBox;
+    std::shared_ptr<TravelAgency> travelAgency;
     Ui::TravelAgencyUI *ui;
 
 private slots:

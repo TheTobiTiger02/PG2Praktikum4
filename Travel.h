@@ -17,18 +17,18 @@ class Travel {
 private:
     long id;
     long customerId;
-    std::vector<Booking *> travelBookings;
+    std::vector<std::shared_ptr<Booking>> travelBookings;
 
 public:
     Travel(long _id, long _customerId);
 
-    void addBooking(Booking *booking);
+    void addBooking(std::shared_ptr<Booking> booking);
 
     long getId() const;
 
     long getCustomerId() const;
 
-    const std::vector<Booking *> &getTravelBookings() const;
+    const std::vector<std::shared_ptr<Booking>> &getTravelBookings() const;
 
     QDate getStartDate();
 

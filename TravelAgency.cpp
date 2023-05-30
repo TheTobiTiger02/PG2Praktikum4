@@ -14,12 +14,9 @@
 using namespace std;
 using json = nlohmann::json;
 
-TravelAgency::~TravelAgency() {
-    for (auto b: allBookings) {
-        delete b;
-    }
 
-    allBookings.clear();
+TravelAgency::~TravelAgency() {
+
 }
 
 void
@@ -43,8 +40,9 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
     double price;
     long travelId;
 
-    Booking *booking;
+    shared_ptr<Booking> booking;
     for (int i = startRow; i < data.size(); i++) {
+        std::cout << i << std::endl;
 
         try {
             if (data.at(i)["type"].is_null() || data.at(i)["type"].empty() ||
@@ -71,9 +69,13 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
             }
             type = data.at(i)["type"];
             id = data.at(i)["id"];
+
+            allBookings.empty();
             if(findBooking(id) != nullptr){
                 continue;
             }
+
+
             price = data.at(i)["price"];
             fromDate = data.at(i)["fromDate"];
             toDate = data.at(i)["toDate"];
@@ -117,11 +119,10 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                     throw runtime_error("Leeres Attribut 'toDestLongitude' in Zeile " + to_string(i + 1));
                 }
 
-                //cout << data.at(i)["bookingClass"][0];
-                booking = new FlightBooking(id, price, fromDate, toDate, travelId, data.at(i)["fromDest"],
+                booking = shared_ptr<FlightBooking>(new FlightBooking(id, price, fromDate, toDate, travelId, data.at(i)["fromDest"],
                                             data.at(i)["toDest"], data.at(i)["airline"],
                                             data.at(i)["bookingClass"].get<string>()[0], data.at(i)["fromDestLatitude"].get<string>() + "," + data.at(i)["fromDestLongitude"].get<string>(),
-                                            data.at(i)["toDestLatitude"].get<string>() + "," + data.at(i)["toDestLongitude"].get<string>());
+                                            data.at(i)["toDestLatitude"].get<string>() + "," + data.at(i)["toDestLongitude"].get<string>()));
                 flightCount++;
                 totalPrice += price;
 
@@ -146,8 +147,8 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                     data.at(i)["hotelLongitude"].get<string>().length() == 0) {
                     throw runtime_error("Leeres Attribut 'hotelLongitude' in Zeile " + to_string(i + 1));
                 }
-                booking = new HotelBooking(id, price, fromDate, toDate, travelId, data.at(i)["hotel"],
-                                           data.at(i)["town"], data.at(i)["roomType"], data.at(i)["hotelLatitude"].get<string>() + "," + data.at(i)["hotelLongitude"].get<string>());
+                booking = shared_ptr<HotelBooking>(new HotelBooking(id, price, fromDate, toDate, travelId, data.at(i)["hotel"],
+                                           data.at(i)["town"], data.at(i)["roomType"], data.at(i)["hotelLatitude"].get<string>() + "," + data.at(i)["hotelLongitude"].get<string>()));
                 hotelCount++;
                 totalPrice += price;
             } else if (type == "RentalCar") {
@@ -183,10 +184,10 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                     data.at(i)["returnLongitude"].get<string>().length() == 0) {
                     throw runtime_error("Leeres Attribut 'returnLongitude' in Zeile " + to_string(i + 1));
                 }
-                booking = new RentalCarReservation(id, price, fromDate, toDate, travelId, data.at(i)["pickupLocation"],
+                booking = shared_ptr<RentalCarReservation> (new RentalCarReservation(id, price, fromDate, toDate, travelId, data.at(i)["pickupLocation"],
                                                    data.at(i)["returnLocation"], data.at(i)["company"],
                                                    data.at(i)["vehicleClass"], data.at(i)["pickupLatitude"].get<string>() + "," + data.at(i)["pickupLongitude"].get<string>(),
-                                                   data.at(i)["returnLatitude"].get<string>() + "," + data.at(i)["returnLongitude"].get<string>());
+                                                   data.at(i)["returnLatitude"].get<string>() + "," + data.at(i)["returnLongitude"].get<string>()));
 
 
                 carCount++;
@@ -197,22 +198,22 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                 throw runtime_error("Leeres Attribut 'customerId' in Zeile " + to_string(i + 1));
             }
             long customerId = data.at(i)["customerId"];
-            allBookings.push_back(booking);
+            allBookings.push_back(std::shared_ptr<Booking>(booking));
 
-            Travel *travel;
+            shared_ptr<Travel> travel;
             if (findTravel(travelId) == nullptr) {
-                travel = new Travel(travelId, customerId);
+                travel = shared_ptr<Travel> (new Travel(travelId, customerId));
                 travel->addBooking(booking);
-                allTravels.push_back(travel);
+                allTravels.push_back(std::shared_ptr<Travel>(travel));
                 travelCount++;
             } else {
                 findTravel(travelId)->addBooking(booking);
             }
 
             if (findCustomer(customerId) == nullptr) {
-                Customer *customer = new Customer(customerId, data.at(i)["customerName"]);
+                shared_ptr<Customer> customer = shared_ptr<Customer> (new Customer(customerId, data.at(i)["customerName"]));
                 customer->addTravel(travel);
-                allCustomers.push_back(customer);
+                allCustomers.push_back(std::shared_ptr<Customer>(customer));
                 customerCount++;
             } else {
                 findCustomer(customerId)->addTravel(travel);
@@ -221,7 +222,6 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
 
         }
         catch (runtime_error r) {
-            cout << r.what() << endl << "Haben Sie die Datei korrigiert? (j/n)" << endl;
             msgBox.setWindowTitle("Fehler beim Einlesen der Buchungen");
             msgBox.setText(QString::fromStdString(r.what()));
             msgBox.setInformativeText(
@@ -263,27 +263,15 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                 return;
             }
             if (msgBox.clickedButton() == discardButton) {
-                for (auto b: allBookings) {
-                    delete b;
-                }
+                allBookings.clear();
                 return;
             }
             if (msgBox.clickedButton() == cancelButton) {
                 return;
             }
 
-
-
-            /*char corrected {};
-            while(tolower(corrected) != 'j'){
-                cin >> corrected;
-            }
-            readFile(filePath, i, flightCount, hotelCount, carCount, totalPrice, totalPrice, totalPrice);
-             */
-            //return;
         }
         catch (json::type_error) {
-            cout << "1234";
             msgBox.setWindowTitle("Fehler beim Einlesen der Buchungen");
             msgBox.setText(
                     "Attribut price hat keinen numerischen Wert in Zeile " + QString::fromStdString(to_string(i + 1)));
@@ -320,9 +308,7 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                 return;
             }
             if (msgBox.clickedButton() == discardButton) {
-                for (auto b: allBookings) {
-                    delete b;
-                }
+                allBookings.clear();
                 return;
             }
 
@@ -330,15 +316,6 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                 return;
             }
 
-            /*cout << "Attribut 'price' hat keinen numerischen Wert" << endl;
-            cout << "Haben Sie die Datei korrigiert? (j/n)" << endl;
-            char corrected {};
-            while(tolower(corrected) != 'j'){
-                cin >> corrected;
-            }
-            readFile(filePath, i, flightCount, hotelCount, carCount, totalPrice, totalPrice, totalPrice);
-            return;
-             */
         }
 
 
@@ -362,7 +339,7 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
 
 }
 
-void TravelAgency::readIataCodes(string filePath) {
+bool TravelAgency::readIataCodes(string filePath) {
     ifstream file(filePath);
     static QMessageBox msgBox;
 
@@ -371,52 +348,62 @@ void TravelAgency::readIataCodes(string filePath) {
         msgBox.setWindowTitle("Fehler beim Einlesen der Iata-Codes");
         msgBox.setText("Datei konnte nicht gelesen werden");
         msgBox.exec();
-        return;
+        return false;
     }
     json data;
     file >> data;
     std::string name{}, isoCountry{}, municipality{}, iataCode{};
-    for(int i = 0; i < data.size(); i++){
-        /*if (data.at(i)["name"].is_null() || data.at(i)["name"].empty() ||
-            data.at(i)["name"].get<string>().length() == 0) {
-            throw runtime_error("Leeres Attribut 'name' in Zeile " + to_string(i + 1));
-        }
-        if (data.at(i)["iso_country"].is_null() || data.at(i)["iso_country"].empty() ||
-            data.at(i)["iso_country"].get<string>().length() == 0) {
-            throw runtime_error("Leeres Attribut 'iso_country' in Zeile " + to_string(i + 1));
-        }
-        if (data.at(i)["municipality"].is_null() || data.at(i)["municipality"].empty() ||
-            data.at(i)["municipality"].get<string>().length() == 0) {
-            std::cout << data.at(i)["name"];
-            throw runtime_error("Leeres Attribut 'municipality' in Zeile " + to_string(i + 1));
-        }
-        if (data.at(i)["iata_code"].is_null() || data.at(i)["iata_code"].empty() ||
-            data.at(i)["iata_code"].get<string>().length() == 0) {
-            throw runtime_error("Leeres Attribut 'iata_code' in Zeile " + to_string(i + 1));
-        }
-         */
-        name = data.at(i)["name"];
-        //std::cout << name << endl;
-        isoCountry = data.at(i)["iso_country"];
-        municipality = data.at(i)["municipality"];
-        iataCode = data.at(i)["iata_code"];
+    try{
+        for(int i = 0; i < data.size(); i++){
+            /*if (data.at(i)["name"].is_null() || data.at(i)["name"].empty() ||
+                data.at(i)["name"].get<string>().length() == 0) {
+                throw runtime_error("Leeres Attribut 'name' in Zeile " + to_string(i + 1));
+            }
+            if (data.at(i)["iso_country"].is_null() || data.at(i)["iso_country"].empty() ||
+                data.at(i)["iso_country"].get<string>().length() == 0) {
+                throw runtime_error("Leeres Attribut 'iso_country' in Zeile " + to_string(i + 1));
+            }
+            if (data.at(i)["municipality"].is_null() || data.at(i)["municipality"].empty() ||
+                data.at(i)["municipality"].get<string>().length() == 0) {
+                std::cout << data.at(i)["name"];
+                throw runtime_error("Leeres Attribut 'municipality' in Zeile " + to_string(i + 1));
+            }
+            if (data.at(i)["iata_code"].is_null() || data.at(i)["iata_code"].empty() ||
+                data.at(i)["iata_code"].get<string>().length() == 0) {
+                throw runtime_error("Leeres Attribut 'iata_code' in Zeile " + to_string(i + 1));
+            }
+             */
+            name = data.at(i)["name"];
+            //std::cout << name << endl;
+            isoCountry = data.at(i)["iso_country"];
+            municipality = data.at(i)["municipality"];
+            iataCode = data.at(i)["iata_code"];
 
-        iataCodes[iataCode] = new Airport(name, isoCountry, municipality);
-
+            iataCodes[iataCode] = shared_ptr<Airport>(new Airport(name, isoCountry, municipality));
+        }
     }
+    catch(...){
+        return false;
+    }
+
+    return true;
 }
 
-Booking *TravelAgency::findBooking(std::string id) {
-    for (Booking *b: allBookings) {
-        if (b->getId() == id) {
-            return b;
+std::shared_ptr<Booking> TravelAgency::findBooking(std::string id) {
+
+    for (const auto& b: allBookings) {
+        if(b.get() != nullptr){
+            if (b->getId() == id) {
+                return b;
+            }
         }
     }
+
     return nullptr;
 }
 
-Travel *TravelAgency::findTravel(long id) {
-    for (Travel *t: allTravels) {
+std::shared_ptr<Travel> TravelAgency::findTravel(long id) {
+    for (auto t: allTravels) {
         if (t->getId() == id) {
             return t;
         }
@@ -424,8 +411,8 @@ Travel *TravelAgency::findTravel(long id) {
     return nullptr;
 }
 
-Customer *TravelAgency::findCustomer(long id) {
-    for (Customer *c: allCustomers) {
+std::shared_ptr<Customer> TravelAgency::findCustomer(long id) {
+    for (auto c: allCustomers) {
         if (c->getId() == id) {
             return c;
         }
@@ -433,12 +420,12 @@ Customer *TravelAgency::findCustomer(long id) {
     return nullptr;
 }
 
-Airport *TravelAgency::getAirport(std::string iataCode) {
+std::shared_ptr<Airport> TravelAgency::getAirport(std::string iataCode) {
     return iataCodes[iataCode];
 }
 
 
-const vector<Booking *> &TravelAgency::getBookings() const {
+const vector<shared_ptr<Booking>> &TravelAgency::getBookings() const {
     return allBookings;
 }
 
@@ -462,15 +449,15 @@ int TravelAgency::getBookingCount(long travelId) {
     return bookingCount;
 }
 
-const vector<Booking *> &TravelAgency::getAllBookings() const {
+const vector<shared_ptr<Booking>> &TravelAgency::getAllBookings() const {
     return allBookings;
 }
 
-const vector<Customer *> &TravelAgency::getAllCustomers() const {
+const vector<shared_ptr<Customer>> &TravelAgency::getAllCustomers() const {
     return allCustomers;
 }
 
-const vector<Travel *> &TravelAgency::getAllTravels() const {
+const vector<shared_ptr<Travel>> &TravelAgency::getAllTravels() const {
     return allTravels;
 }
 

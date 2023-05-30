@@ -45,6 +45,10 @@ public:
 
     const std::string &getAirline() const;
 
+    const std::string &getFromDestCoordinates() const;
+
+    const std::string &getToDestCoordinates() const;
+
     std::string getBookingClass() const;
 
 };

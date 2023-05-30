@@ -14,18 +14,18 @@ class Customer {
 
     long id;
     std::string name;
-    std::vector<Travel *> travelList;
+    std::vector<std::shared_ptr<Travel>> travelList;
 
 public:
     Customer(long _id, std::string _name);
 
-    void addTravel(Travel *travel);
+    void addTravel(std::shared_ptr<Travel> travel);
 
     long getId() const;
 
     const std::string &getName() const;
 
-    const std::vector<Travel *> &getTravelList() const;
+    const std::vector<std::shared_ptr<Travel>> &getTravelList() const;
 };
 
 

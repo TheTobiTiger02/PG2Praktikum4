@@ -11,8 +11,9 @@
 #include <QAbstractButton>
 #include <QTranslator>
 #include <QInputDialog>
+#include <QDesktopServices>
 
-TravelAgencyUI::TravelAgencyUI(TravelAgency *_travelAgency, QWidget *parent) : QMainWindow(parent),
+TravelAgencyUI::TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWidget *parent) : QMainWindow(parent),
                                                                                ui(new Ui::TravelAgencyUI),
                                                                                travelAgency(_travelAgency) {
     ui->setupUi(this);
@@ -49,20 +50,39 @@ TravelAgencyUI::~TravelAgencyUI() {
 }
 
 void TravelAgencyUI::onReadBookings() {
+
+
+
+
     QString filePath = QFileDialog::getOpenFileName(this, "Datei auswählen", "*.json");
     travelAgency->readFile(filePath.toStdString());
 }
 void TravelAgencyUI::onReadIata() {
     QString filePath = QFileDialog::getOpenFileName(this, "Datei auswählen", "*.json");
-    travelAgency->readIataCodes(filePath.toStdString());
-
-
+    msgBox = new QMessageBox();
+    if(travelAgency->readIataCodes(filePath.toStdString())){
+        readIataCodes = true;
+        msgBox->setWindowTitle("Erfolgreich eingelesen");
+        msgBox->setText("Die Iata-Codes wurden erfolgreich eingelesen");
+    }
+    else{
+        msgBox->setWindowTitle("Fehler");
+        msgBox->setText("Es ist ein Fehler beim Einlesen der Iata-Codes aufgetreten");
+    }
+    msgBox->exec();
 }
 
 void TravelAgencyUI::onCustomerSearch() {
+
     msgBox = new QMessageBox();
+    if(!readIataCodes){
+        msgBox->setWindowTitle("Iata-Codes nicht eingelesen");
+        msgBox->setText("Sie müssen zuerst die Datei mit den Iata-Codes einlesen");
+        msgBox->exec();
+        return;
+    }
     long customerId = QInputDialog::getInt(this, "Kund*Innensuche", "ID");
-    Customer *customer = travelAgency->findCustomer(customerId);
+    std::shared_ptr<Customer> customer = travelAgency->findCustomer(customerId);
     if (customer == nullptr) {
         msgBox->setWindowTitle("Kunde nicht gefunden");
         msgBox->setText("Der Kunde mit der ID " + QString::fromStdString(std::to_string(customerId)) +
@@ -135,13 +155,13 @@ void TravelAgencyUI::loadBookings(long travelId) {
     }
 }
 
-QIcon TravelAgencyUI::getBookingIcon(Booking *booking) {
+QIcon TravelAgencyUI::getBookingIcon(std::shared_ptr<Booking> booking) {
 
-    if (FlightBooking *flightBooking = dynamic_cast<FlightBooking *>(booking)) {
+    if (std::shared_ptr<FlightBooking> flightBooking = std::dynamic_pointer_cast<FlightBooking>(booking)) {
         return QIcon("../Images/Flight.png");
-    } else if (HotelBooking *hotelBooking = dynamic_cast<HotelBooking *>(booking)) {
+    } else if (std::shared_ptr<HotelBooking> hotelBooking = std::dynamic_pointer_cast<HotelBooking>(booking)) {
         return QIcon("../Images/Hotel.png");
-    } else if (RentalCarReservation *rentalCarReservation = dynamic_cast<RentalCarReservation *>(booking)) {
+    } else if (std::shared_ptr<RentalCarReservation> rentalCarReservation = dynamic_pointer_cast<RentalCarReservation>(booking)) {
         return QIcon("../Images/Car.png");
     }
 
@@ -160,20 +180,44 @@ void TravelAgencyUI::loadBookingDetails() {
     ui->bookingEndDateEdit->setDate(activeBooking->getToDate());
     ui->bookingPriceEdit->setValue(activeBooking->getPrice());
 
-    if (FlightBooking *flightBooking = dynamic_cast<FlightBooking *>(activeBooking)) {
+    if (std::shared_ptr<FlightBooking> flightBooking = dynamic_pointer_cast<FlightBooking>(activeBooking)) {
         ui->bookingTabWidget->setCurrentWidget(ui->flightTab);
+
+        std::shared_ptr<Airport> fromAirport = travelAgency->getAirport(flightBooking->getFromDestination());
+        std::shared_ptr<Airport> toAirport = travelAgency->getAirport(flightBooking->getToDestination());
+
         ui->flightStartCodeLineEdit->setText(QString::fromStdString(flightBooking->getFromDestination()));
         ui->flightStartLineEdit->setText(QString::fromStdString(travelAgency->getAirport(flightBooking->getFromDestination())->getName()));
+        ui->flightStartLineEdit->setStyleSheet("color: white");
         ui->flightEndCodeLineEdit->setText(QString::fromStdString(flightBooking->getToDestination()));
         ui->flightEndLineEdit->setText(QString::fromStdString(travelAgency->getAirport(flightBooking->getToDestination())->getName()));
+        ui->flightEndLineEdit->setStyleSheet("color: white");
         ui->flightAirlineLineEdit->setText(QString::fromStdString(flightBooking->getAirline()));
         ui->flightClassLineEdit->setText(QString::fromStdString(flightBooking->getBookingClass()));
-    } else if (HotelBooking *hotelBooking = dynamic_cast<HotelBooking *>(activeBooking)) {
+
+        /*QDesktopServices::openUrl(QUrl("http://townsendjennings.com/geo/?geojson={"
+                                       "\"type\":\"LineString\","
+                                       "\"coordinates\":[ "
+                                       "[30, 10], [10, 30]"
+                                       "], "
+                                       "\"title\":\"Test\""
+                                       "}" ));
+                                       */
+        QString geoJson =  "http://townsendjennings.com/geo/?geojson={"
+                           "\"type\":\"LineString\","
+                           "\"coordinates\":["
+                           "[" + QString::fromStdString(flightBooking->getToDestCoordinates()) + "], [" + QString::fromStdString(flightBooking->getFromDestCoordinates()) + "]"
+                                                                                                                                                                            "]"
+                                                                                                                                                                            "}";
+
+        std::cout << geoJson.toStdString();
+        QDesktopServices::openUrl(QUrl(geoJson));
+    } else if (std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(activeBooking)) {
         ui->bookingTabWidget->setCurrentWidget(ui->hotelTab);
         ui->hotelNameLineEdit->setText(QString::fromStdString(hotelBooking->getHotel()));
         ui->hotelTownLineEdit->setText(QString::fromStdString(hotelBooking->getTown()));
         ui->hotelRoomLineEdit->setText(QString::fromStdString(hotelBooking->getRoomType()));
-    } else if (RentalCarReservation *rentalCarReservation = dynamic_cast<RentalCarReservation *>(activeBooking)) {
+    } else if (std::shared_ptr<RentalCarReservation> rentalCarReservation = dynamic_pointer_cast<RentalCarReservation>(activeBooking)) {
         ui->bookingTabWidget->setCurrentWidget(ui->rentalTab);
         ui->rentalPickupLineEdit->setText(QString::fromStdString(rentalCarReservation->getPickupLocation()));
         ui->rentalReturnLineEdit->setText(QString::fromStdString(rentalCarReservation->getReturnLocation()));
@@ -184,26 +228,44 @@ void TravelAgencyUI::loadBookingDetails() {
 
 
 void TravelAgencyUI::onSaveBookingsButtonClicked() {
-    Booking *booking = travelAgency->findBooking(ui->bookingIdLineEdit->text().toStdString());
-    booking->setFromDate(ui->bookingStartDateEdit->date().toString("yyyyMMdd").toStdString());
-    booking->setToDate(ui->bookingEndDateEdit->date().toString("yyyyMMdd").toStdString());
-    booking->setPrice(ui->bookingPriceEdit->value());
+    std::shared_ptr<Booking> booking = travelAgency->findBooking(ui->bookingIdLineEdit->text().toStdString());
 
-    if (FlightBooking *flightBooking = dynamic_cast<FlightBooking *>(booking)) {
-        flightBooking->setFromDestination(ui->flightStartCodeLineEdit->text().toStdString());
-        flightBooking->setToDestination(ui->flightEndCodeLineEdit->text().toStdString());
+
+    if (std::shared_ptr<FlightBooking> flightBooking = dynamic_pointer_cast<FlightBooking>(booking)) {
+        if(travelAgency->getAirport(ui->flightStartCodeLineEdit->text().toStdString()) == nullptr){
+            ui->flightStartLineEdit->setText("Ungültiger Iata-Code");
+            ui->flightStartLineEdit->setStyleSheet("color: red");
+        }
+        else{
+            flightBooking->setFromDestination(ui->flightStartCodeLineEdit->text().toStdString());
+        }
+        if(travelAgency->getAirport(ui->flightEndCodeLineEdit->text().toStdString()) == nullptr){
+            ui->flightEndLineEdit->setText("Ungültiger Iata-Code");
+            ui->flightEndLineEdit->setStyleSheet("color: red");
+        }
+        else{
+            flightBooking->setToDestination(ui->flightEndCodeLineEdit->text().toStdString());
+        }
+        if(travelAgency->getAirport(ui->flightStartCodeLineEdit->text().toStdString()) == nullptr || travelAgency->getAirport(ui->flightEndCodeLineEdit->text().toStdString()) == nullptr){
+            return;
+        }
         flightBooking->setAirline(ui->flightAirlineLineEdit->text().toStdString());
         flightBooking->setBookingClass(ui->flightClassLineEdit->text().toStdString());
-    } else if (HotelBooking *hotelBooking = dynamic_cast<HotelBooking *>(booking)) {
+
+    } else if (std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(booking)) {
         hotelBooking->setHotel(ui->hotelNameLineEdit->text().toStdString());
         hotelBooking->setTown(ui->hotelTownLineEdit->text().toStdString());
         hotelBooking->setRoomType(ui->hotelRoomLineEdit->text().toStdString());
-    } else if (RentalCarReservation *rentalCarReservation = dynamic_cast<RentalCarReservation *>(booking)) {
+    } else if (std::shared_ptr<RentalCarReservation> rentalCarReservation = dynamic_pointer_cast<RentalCarReservation>(booking)) {
         rentalCarReservation->setPickupLocation(ui->rentalPickupLineEdit->text().toStdString());
         rentalCarReservation->setReturnLocation(ui->rentalReturnLineEdit->text().toStdString());
         rentalCarReservation->setCompany(ui->rentalCompanyLineEdit->text().toStdString());
         rentalCarReservation->setVehicleClass(ui->rentalClassLineEdit->text().toStdString());
     }
+    booking->setFromDate(ui->bookingStartDateEdit->date().toString("yyyyMMdd").toStdString());
+    booking->setToDate(ui->bookingEndDateEdit->date().toString("yyyyMMdd").toStdString());
+    booking->setPrice(ui->bookingPriceEdit->value());
+
     loadTravels(ui->customerIdLineEdit->text().toLong());
     loadBookings(ui->travelIdLineEdit->text().toLong());
     loadBookingDetails();

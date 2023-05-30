@@ -67,4 +67,12 @@ void FlightBooking::setBookingClass(const string &bookingClass) {
     FlightBooking::bookingClass = bookingClass;
 }
 
+const string &FlightBooking::getFromDestCoordinates() const {
+    return fromDestCoordinates;
+}
+
+const string &FlightBooking::getToDestCoordinates() const {
+    return toDestCoordinates;
+}
+
 

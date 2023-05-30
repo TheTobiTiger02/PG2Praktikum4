@@ -24,7 +24,7 @@ public:
 
     virtual std::string showDetails() = 0;
 
-    const std::string &getId() const;
+    std::string &getId();
 
     double getPrice() const;
 

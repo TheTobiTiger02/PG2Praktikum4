@@ -8,7 +8,7 @@ Travel::Travel(long _id, long _customerId) : id(_id), customerId(_customerId) {
 
 }
 
-void Travel::addBooking(Booking *booking) {
+void Travel::addBooking(std::shared_ptr<Booking> booking) {
     travelBookings.push_back(booking);
 }
 
@@ -20,7 +20,7 @@ long Travel::getCustomerId() const {
     return customerId;
 }
 
-const std::vector<Booking *> &Travel::getTravelBookings() const {
+const std::vector<std::shared_ptr<Booking>> &Travel::getTravelBookings() const {
     return travelBookings;
 }
 
