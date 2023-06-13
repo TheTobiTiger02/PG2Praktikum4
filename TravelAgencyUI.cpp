@@ -203,6 +203,7 @@ void TravelAgencyUI::loadBookingDetails() {
                                        "\"title\":\"Test\""
                                        "}" ));
                                        */
+
         QString geoJson =  "http://townsendjennings.com/geo/?geojson={"
                            "\"type\":\"LineString\","
                            "\"coordinates\":["

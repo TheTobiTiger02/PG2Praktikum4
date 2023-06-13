@@ -121,8 +121,8 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
 
                 booking = shared_ptr<FlightBooking>(new FlightBooking(id, price, fromDate, toDate, travelId, data.at(i)["fromDest"],
                                             data.at(i)["toDest"], data.at(i)["airline"],
-                                            data.at(i)["bookingClass"].get<string>()[0], data.at(i)["fromDestLatitude"].get<string>() + "," + data.at(i)["fromDestLongitude"].get<string>(),
-                                            data.at(i)["toDestLatitude"].get<string>() + "," + data.at(i)["toDestLongitude"].get<string>()));
+                                            data.at(i)["bookingClass"].get<string>()[0], data.at(i)["fromDestLongitude"].get<string>() + "," + data.at(i)["fromDestLatitude"].get<string>(),
+                                            data.at(i)["toDestLongitude"].get<string>() + "," + data.at(i)["toDestLatitude"].get<string>()));
                 flightCount++;
                 totalPrice += price;
 
