@@ -55,3 +55,7 @@ void HotelBooking::setTown(const string &town) {
 void HotelBooking::setRoomType(const string &roomType) {
     HotelBooking::roomType = roomType;
 }
+
+const string &HotelBooking::getHotelCoordinates() const {
+    return hotelCoordinates;
+}

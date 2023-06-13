@@ -148,7 +148,7 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                     throw runtime_error("Leeres Attribut 'hotelLongitude' in Zeile " + to_string(i + 1));
                 }
                 booking = shared_ptr<HotelBooking>(new HotelBooking(id, price, fromDate, toDate, travelId, data.at(i)["hotel"],
-                                           data.at(i)["town"], data.at(i)["roomType"], data.at(i)["hotelLatitude"].get<string>() + "," + data.at(i)["hotelLongitude"].get<string>()));
+                                           data.at(i)["town"], data.at(i)["roomType"], data.at(i)["hotelLongitude"].get<string>() + "," + data.at(i)["hotelLatitude"].get<string>()));
                 hotelCount++;
                 totalPrice += price;
             } else if (type == "RentalCar") {
@@ -186,8 +186,8 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                 }
                 booking = shared_ptr<RentalCarReservation> (new RentalCarReservation(id, price, fromDate, toDate, travelId, data.at(i)["pickupLocation"],
                                                    data.at(i)["returnLocation"], data.at(i)["company"],
-                                                   data.at(i)["vehicleClass"], data.at(i)["pickupLatitude"].get<string>() + "," + data.at(i)["pickupLongitude"].get<string>(),
-                                                   data.at(i)["returnLatitude"].get<string>() + "," + data.at(i)["returnLongitude"].get<string>()));
+                                                   data.at(i)["vehicleClass"], data.at(i)["pickupLongitude"].get<string>() + "," + data.at(i)["pickupLatitude"].get<string>(),
+                                                   data.at(i)["returnLongitude"].get<string>() + "," + data.at(i)["returnLatitude"].get<string>()));
 
 
                 carCount++;
@@ -459,5 +459,35 @@ const vector<shared_ptr<Customer>> &TravelAgency::getAllCustomers() const {
 
 const vector<shared_ptr<Travel>> &TravelAgency::getAllTravels() const {
     return allTravels;
+}
+
+long TravelAgency::getNextCustomerId() {
+    long id = 1;
+
+    for(auto c : allCustomers){
+        if(c->getId() > id){
+            id = c->getId();
+        }
+    }
+    return id;
+}
+
+void TravelAgency::addCustomer(std::shared_ptr<Customer> customer) {
+    allCustomers.push_back(customer);
+}
+
+long TravelAgency::getNextTravelId() {
+    long id = 1;
+
+    for(auto t : allTravels){
+        if(t->getId() > id){
+            id = t->getId();
+        }
+    }
+    return id;
+}
+
+void TravelAgency::addTravel(std::shared_ptr<Travel> travel) {
+    allTravels.push_back(travel);
 }
 

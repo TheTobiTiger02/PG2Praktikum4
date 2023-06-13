@@ -62,6 +62,11 @@ private slots:
 
     void onCancelBookingsButtonClicked();
 
+    void onOpenMapButtonClicked();
+
+    void onAddCustomer();
+    void onAddBooking();
+
 };
 
 

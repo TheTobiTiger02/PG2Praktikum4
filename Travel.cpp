@@ -25,6 +25,7 @@ const std::vector<std::shared_ptr<Booking>> &Travel::getTravelBookings() const {
 }
 
 QDate Travel::getStartDate() {
+
     QDate startDate = travelBookings.at(0)->getFromDate();
     for (auto b: travelBookings) {
         QDate newDate = b->getFromDate();

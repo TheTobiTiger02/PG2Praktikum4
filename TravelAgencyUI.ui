@@ -301,101 +301,112 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="flightTab">
           <attribute name="title">
            <string>Flugbuchung</string>
           </attribute>
-          <widget class="QWidget" name="layoutWidget">
+          <widget class="QWidget" name="">
            <property name="geometry">
             <rect>
              <x>10</x>
              <y>20</y>
-             <width>331</width>
-             <height>178</height>
+             <width>311</width>
+             <height>210</height>
             </rect>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <layout class="QVBoxLayout" name="verticalLayout_15">
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Startflughafencode</string>
-                </property>
-               </widget>
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <widget class="QLabel" name="label_8">
+                  <property name="text">
+                   <string>Startflughafencode</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_16">
+                  <property name="text">
+                   <string>Startflughafen</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Zielflughafencode</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_17">
+                  <property name="text">
+                   <string>Zielflughafen</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_10">
+                  <property name="text">
+                   <string>Fluggesellschaft</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_11">
+                  <property name="text">
+                   <string>Buchungsklasse</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
-               <widget class="QLabel" name="label_16">
-                <property name="text">
-                 <string>Startflughafen</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Zielflughafencode</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_17">
-                <property name="text">
-                 <string>Zielflughafen</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>Fluggesellschaft</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Buchungsklasse</string>
-                </property>
-               </widget>
+               <layout class="QVBoxLayout" name="verticalLayout_6">
+                <item>
+                 <widget class="QLineEdit" name="flightStartCodeLineEdit">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="flightStartLineEdit">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="flightEndCodeLineEdit"/>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="flightEndLineEdit">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="flightAirlineLineEdit"/>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="flightClassLineEdit"/>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <item>
-               <widget class="QLineEdit" name="flightStartCodeLineEdit">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="flightStartLineEdit">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="flightEndCodeLineEdit"/>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="flightEndLineEdit">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="flightAirlineLineEdit"/>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="flightClassLineEdit"/>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="flightMapButton">
+              <property name="text">
+               <string>Auf Karte anzeigen</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -404,53 +415,64 @@
           <attribute name="title">
            <string>Hotelbuchung</string>
           </attribute>
-          <widget class="QWidget" name="layoutWidget">
+          <widget class="QWidget" name="">
            <property name="geometry">
             <rect>
              <x>10</x>
              <y>10</y>
-             <width>331</width>
-             <height>88</height>
+             <width>311</width>
+             <height>120</height>
             </rect>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+           <layout class="QVBoxLayout" name="verticalLayout_16">
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout">
+             <layout class="QHBoxLayout" name="horizontalLayout">
               <item>
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>Hotelname</string>
-                </property>
-               </widget>
+               <layout class="QVBoxLayout" name="verticalLayout">
+                <item>
+                 <widget class="QLabel" name="label_5">
+                  <property name="text">
+                   <string>Hotelname</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="text">
+                   <string>Stadt</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>Zimmertyp</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Stadt</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>Zimmertyp</string>
-                </property>
-               </widget>
+               <layout class="QVBoxLayout" name="verticalLayout_2">
+                <item>
+                 <widget class="QLineEdit" name="hotelNameLineEdit"/>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="hotelTownLineEdit"/>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="hotelRoomLineEdit"/>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_2">
-              <item>
-               <widget class="QLineEdit" name="hotelNameLineEdit"/>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="hotelTownLineEdit"/>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="hotelRoomLineEdit"/>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="hotelMapButton">
+              <property name="text">
+               <string>Auf Karte anzeigen</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -459,63 +481,74 @@
           <attribute name="title">
            <string>Mietwagenreservierung</string>
           </attribute>
-          <widget class="QWidget" name="layoutWidget">
+          <widget class="QWidget" name="">
            <property name="geometry">
             <rect>
              <x>10</x>
              <y>10</y>
-             <width>331</width>
-             <height>118</height>
+             <width>311</width>
+             <height>150</height>
             </rect>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <layout class="QVBoxLayout" name="verticalLayout_17">
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_7">
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>Abholort</string>
-                </property>
-               </widget>
+               <layout class="QVBoxLayout" name="verticalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Abholort</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_13">
+                  <property name="text">
+                   <string>Rückgabeort</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_14">
+                  <property name="text">
+                   <string>Firma</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_15">
+                  <property name="text">
+                   <string>Fahrzeugklasse</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>Rückgabeort</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_14">
-                <property name="text">
-                 <string>Firma</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_15">
-                <property name="text">
-                 <string>Fahrzeugklasse</string>
-                </property>
-               </widget>
+               <layout class="QVBoxLayout" name="verticalLayout_8">
+                <item>
+                 <widget class="QLineEdit" name="rentalPickupLineEdit"/>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="rentalReturnLineEdit"/>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="rentalCompanyLineEdit"/>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="rentalClassLineEdit"/>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_8">
-              <item>
-               <widget class="QLineEdit" name="rentalPickupLineEdit"/>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="rentalReturnLineEdit"/>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="rentalCompanyLineEdit"/>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="rentalClassLineEdit"/>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="rentalMapButton">
+              <property name="text">
+               <string>Auf Karte anzeigen</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -566,9 +599,17 @@
      <string>Kund*Innen</string>
     </property>
     <addaction name="actionSuchen"/>
+    <addaction name="actionHinzuf_gen"/>
+   </widget>
+   <widget class="QMenu" name="menuBuchungen">
+    <property name="title">
+     <string>Buchungen</string>
+    </property>
+    <addaction name="actionHinzuf_gen_2"/>
    </widget>
    <addaction name="menuDatei"/>
    <addaction name="menuKund_Innen"/>
+   <addaction name="menuBuchungen"/>
   </widget>
   <action name="actionEinlesen">
    <property name="text">
@@ -586,6 +627,16 @@
   <action name="actionIata_Codes_Einlesen">
    <property name="text">
     <string>Iata-Codes Einlesen</string>
+   </property>
+  </action>
+  <action name="actionHinzuf_gen">
+   <property name="text">
+    <string>Hinzufügen</string>
+   </property>
+  </action>
+  <action name="actionHinzuf_gen_2">
+   <property name="text">
+    <string>Hinzufügen</string>
    </property>
   </action>
  </widget>

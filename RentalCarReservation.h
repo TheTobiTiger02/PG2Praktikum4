@@ -43,6 +43,10 @@ public:
     const std::string &getCompany() const;
 
     const std::string &getVehicleClass() const;
+
+    const std::string &getPickupCoordinates() const;
+
+    const std::string &getReturnCoordinates() const;
 };
 
 

@@ -37,6 +37,8 @@ public:
     void setRoomType(const std::string &roomType);
 
     const std::string &getRoomType() const;
+
+    const std::string &getHotelCoordinates() const;
 };
 
 

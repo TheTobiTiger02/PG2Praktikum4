@@ -52,6 +52,12 @@ public:
 
     const std::vector<std::shared_ptr<Booking >> &getBookings() const;
 
+    long getNextCustomerId();
+    void addCustomer(std::shared_ptr<Customer> customer);
+
+    long getNextTravelId();
+    void addTravel(std::shared_ptr<Travel> travel);
+
 
 
 private slots:

@@ -62,3 +62,11 @@ void RentalCarReservation::setCompany(const string &company) {
 void RentalCarReservation::setVehicleClass(const string &vehicleClass) {
     RentalCarReservation::vehicleClass = vehicleClass;
 }
+
+const string &RentalCarReservation::getPickupCoordinates() const {
+    return pickupCoordinates;
+}
+
+const string &RentalCarReservation::getReturnCoordinates() const {
+    return returnCoordinates;
+}

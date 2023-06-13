@@ -12,6 +12,10 @@
 #include <QTranslator>
 #include <QInputDialog>
 #include <QDesktopServices>
+#include <QUuid>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QDateEdit>
 
 TravelAgencyUI::TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWidget *parent) : QMainWindow(parent),
                                                                                ui(new Ui::TravelAgencyUI),
@@ -26,6 +30,13 @@ TravelAgencyUI::TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWid
             SLOT(onTravelBookingListDoubleClicked()));
     connect(ui->saveBookingButton, SIGNAL(clicked(bool)), this, SLOT(onSaveBookingsButtonClicked()));
     connect(ui->cancelBookingButton, SIGNAL(clicked(bool)), this, SLOT(onCancelBookingsButtonClicked()));
+    connect(ui->flightMapButton, SIGNAL(clicked(bool)), this, SLOT(onOpenMapButtonClicked()));
+    connect(ui->hotelMapButton, SIGNAL(clicked(bool)), this, SLOT(onOpenMapButtonClicked()));
+    connect(ui->rentalMapButton, SIGNAL(clicked(bool)), this, SLOT(onOpenMapButtonClicked()));
+    connect(ui->actionHinzuf_gen, SIGNAL(triggered(bool)), this, SLOT(onAddCustomer()));
+    connect(ui->actionHinzuf_gen_2, SIGNAL(triggered(bool)), this, SLOT(onAddBooking()));
+
+
     ui->customerGroupBox->setVisible(false);
     ui->customerTravelsTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->customerTravelsTableWidget->setColumnWidth(0, 100);
@@ -41,6 +52,7 @@ TravelAgencyUI::TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWid
 
     ui->bookingGroupBox->setVisible(false);
 
+    QString test = QUuid::createUuid().toString();
 
 }
 
@@ -204,15 +216,7 @@ void TravelAgencyUI::loadBookingDetails() {
                                        "}" ));
                                        */
 
-        QString geoJson =  "http://townsendjennings.com/geo/?geojson={"
-                           "\"type\":\"LineString\","
-                           "\"coordinates\":["
-                           "[" + QString::fromStdString(flightBooking->getToDestCoordinates()) + "], [" + QString::fromStdString(flightBooking->getFromDestCoordinates()) + "]"
-                                                                                                                                                                            "]"
-                                                                                                                                                                            "}";
 
-        std::cout << geoJson.toStdString();
-        QDesktopServices::openUrl(QUrl(geoJson));
     } else if (std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(activeBooking)) {
         ui->bookingTabWidget->setCurrentWidget(ui->hotelTab);
         ui->hotelNameLineEdit->setText(QString::fromStdString(hotelBooking->getHotel()));
@@ -276,6 +280,194 @@ void TravelAgencyUI::onSaveBookingsButtonClicked() {
 
 void TravelAgencyUI::onCancelBookingsButtonClicked() {
     loadBookingDetails();
+}
+
+void TravelAgencyUI::onOpenMapButtonClicked() {
+
+    QString geoJson;
+
+
+    if (std::shared_ptr<FlightBooking> flightBooking = dynamic_pointer_cast<FlightBooking>(activeBooking)){
+        geoJson =  "http://townsendjennings.com/geo/?geojson={"
+                           "\"type\":\"LineString\","
+                           "\"coordinates\":["
+                           "[" + QString::fromStdString(flightBooking->getToDestCoordinates()) + "], [" + QString::fromStdString(flightBooking->getFromDestCoordinates()) + "]"
+                                                                                                                                                                             "]"
+                                                                                                                                                                             "}";
+
+    }
+    else if(std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(activeBooking)){
+        geoJson =  "http://townsendjennings.com/geo/?geojson={"
+                   "\"type\":\"Point\","
+                   "\"coordinates\":["
+                    + QString::fromStdString(hotelBooking->getHotelCoordinates()) + "]"
+                                                                                                                                                                    "}";
+    }
+    else if(std::shared_ptr<RentalCarReservation> rentalCarReservation = dynamic_pointer_cast<RentalCarReservation>(activeBooking)){
+        if(rentalCarReservation->getReturnLocation() == rentalCarReservation->getPickupLocation()){
+            geoJson =  "http://townsendjennings.com/geo/?geojson={"
+                       "\"type\":\"Point\","
+                       "\"coordinates\":["
+                       + QString::fromStdString(rentalCarReservation->getPickupCoordinates()) + "]"
+                                                                                       "}";
+        }
+        else{
+            geoJson =  "http://townsendjennings.com/geo/?geojson={"
+                       "\"type\":\"LineString\","
+                       "\"coordinates\":["
+                       "[" + QString::fromStdString(rentalCarReservation->getPickupCoordinates()) + "], [" + QString::fromStdString(rentalCarReservation->getReturnCoordinates()) + "]"
+                                                                                                                                                                              "]"
+                                                                                                                                                                              "}";
+        }
+
+    }
+    std::cout << geoJson.toStdString();
+    QDesktopServices::openUrl(QUrl(geoJson));
+
+}
+
+void TravelAgencyUI::onAddCustomer() {
+    std::string customerName = QInputDialog::getText(this, "Kunde hinzufügen", "Name des Kunden").toStdString();
+    if(customerName == ""){
+        QMessageBox::information(this, "Fehler", "Geben Sie bitte einen Namen ein");
+        return;
+    }
+    long id = travelAgency->getNextCustomerId();
+    std::shared_ptr<Customer> customer = std::shared_ptr<Customer>(new Customer(id, customerName));
+    travelAgency->addCustomer(customer);
+    QMessageBox::information(this, "Kunde hinzugefügt", "Der Kunde mit dem Namen " + QString::fromStdString(customerName) + " wurde mit der id " + QString::fromStdString(std::to_string(id)) + " hinzugefügt");
+
+}
+
+void TravelAgencyUI::onAddBooking() {
+    QLineEdit* fromDest;
+    QLineEdit* toDest;
+    QLineEdit* airline;
+    QLineEdit* bookingClass;
+    QLineEdit* pickupLocation;
+    QLineEdit* returnLocation;
+    QLineEdit* company;
+    QLineEdit* vehicleClass;
+    QLineEdit* hotel;
+    QLineEdit* town;
+    QLineEdit* roomType;
+
+    QDialog dialog(this);
+    QFormLayout form(&dialog);
+
+    form.addRow(new QLabel("Buchungsdetails"));
+
+    QDoubleSpinBox * price = new QDoubleSpinBox(&dialog);
+    price->setMaximum(999999);
+    form.addRow("Preis", price);
+
+    QDateEdit* fromDate = new QDateEdit(&dialog);
+    fromDate->setCalendarPopup(true);
+    form.addRow("Start", fromDate);
+
+    QDateEdit* toDate = new QDateEdit(&dialog);
+    toDate->setCalendarPopup(true);
+    form.addRow("Ende", toDate);
+
+    msgBox = new QMessageBox();
+    msgBox->setWindowTitle("Buchung hinzufügen");
+    msgBox->setText("Soll die Reise zu einer bestehenden Reise hinzugefügt werden, oder soll eine neue Reise erstellt werden?");
+    QAbstractButton *newTravel = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Neue Reise",
+                                                                                        QMessageBox::ActionRole));
+    QAbstractButton *travel = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Zu Reise hinzufügen",
+                                                                                          QMessageBox::ActionRole));
+    QAbstractButton *cancel = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Abbrechen",
+                                                                                    QMessageBox::ActionRole));
+
+    msgBox->exec();
+
+    if(msgBox->clickedButton() == newTravel){
+
+        msgBox = new QMessageBox();
+        msgBox->setWindowTitle("Buchung hinzufügen");
+        msgBox->setText("Soll die Reise zu einer bestehenden Reise hinzugefügt werden, oder soll eine neue Reise erstellt werden?");
+        QAbstractButton *flightBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Flugbuchung",
+                                                                                               QMessageBox::ActionRole));
+        QAbstractButton *hotelBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Hotelbuchung",
+                                                                                              QMessageBox::ActionRole));
+        QAbstractButton *rentalBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Mietwagenbuchung",
+                                                                                               QMessageBox::ActionRole));
+        QAbstractButton *cancel = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Abbrechen",
+                                                                                        QMessageBox::ActionRole));
+
+        msgBox->exec();
+
+        if(msgBox->clickedButton() == cancel){
+            return;
+        }
+        if(msgBox->clickedButton() == flightBooking){
+            fromDest = new QLineEdit(&dialog);
+            form.addRow("Start Flughafen", fromDest);
+
+            toDest = new QLineEdit(&dialog);
+
+            form.addRow("Ziel Flughafen", toDest);
+
+            airline = new QLineEdit(&dialog);
+            form.addRow("Fluggesellschaft", airline);
+
+            bookingClass = new QLineEdit(&dialog);
+            form.addRow("Buchungsklasse", bookingClass);
+        }
+        if(msgBox->clickedButton() == hotelBooking){
+            hotel = new QLineEdit(&dialog);
+            form.addRow("Hotel", hotel);
+
+            town = new QLineEdit(&dialog);
+            form.addRow("Stadt", town);
+
+            roomType = new QLineEdit(&dialog);
+            form.addRow("Zimmertyp", roomType);
+        }
+        if(msgBox->clickedButton() == rentalBooking){
+            pickupLocation = new QLineEdit(&dialog);
+            form.addRow("Abholort", pickupLocation);
+
+            returnLocation = new QLineEdit(&dialog);
+            form.addRow("Rückgabeort", returnLocation);
+
+            company = new QLineEdit(&dialog);
+            form.addRow("Firma", company);
+
+            vehicleClass = new QLineEdit(&dialog);
+            form.addRow("Fahrzeugklasse", vehicleClass);
+        }
+
+        QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                                   Qt::Horizontal, &dialog);
+        form.addRow(&buttonBox);
+        QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+        QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+        if (dialog.exec() == QDialog::Accepted ) {
+
+            //std::shared_ptr<Booking> booking = std::shared_ptr<Booking>(new Booking(QUuid::createUuid().toString().toStdString(), price->value(), fromDate->date().toString(), toDate->date().toString()));
+            long customerId = QInputDialog::getInt(this, "KundenId", "Zu welchem Kunden soll die Reise hinzugefügt werden");
+
+            if(travelAgency->findCustomer(customerId) == nullptr){
+                QMessageBox::information(this, "Fehler", "Kunde mit id " + QString::number(customerId) + " nicht gefunden");
+                return;
+            }
+
+            long travelId = travelAgency->getNextTravelId();
+            std::shared_ptr<Travel> travel = std::shared_ptr<Travel>(new Travel(travelId, customerId));
+
+
+            travelAgency->addTravel(travel);
+        }
+
+    }
+    if(msgBox->clickedButton() == travel){
+
+    }
+    if(msgBox->clickedButton() == cancel){
+        return;
+    }
 }
 
 
