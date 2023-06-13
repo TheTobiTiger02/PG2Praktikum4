@@ -47,6 +47,8 @@ private:
     std::shared_ptr<TravelAgency> travelAgency;
     Ui::TravelAgencyUI *ui;
 
+    std::string addedBooking;
+
 private slots:
 
     void onReadBookings();
