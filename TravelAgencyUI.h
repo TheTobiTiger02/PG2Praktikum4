@@ -9,6 +9,7 @@
 #include <QListWidgetItem>
 #include "TravelAgency.h"
 #include "ui_TravelAgencyUI.h"
+#include "SortFunktor.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -31,6 +32,8 @@ public:
     void loadBookings(long travelId);
 
     void loadBookingDetails();
+
+    SortFunktor funktor;
 
 private:
 
@@ -68,6 +71,8 @@ private slots:
 
     void onAddCustomer();
     void onAddBooking();
+
+    void onSaveBookings();
 
 };
 

@@ -15,17 +15,22 @@
 #include "Customer.h"
 #include "Travel.h"
 #include "Airport.h"
+#include "SortFunktor.h"
 
 class TravelAgency {
 private:
-    //QMessageBox* msgBox;
+    QMessageBox* msgBox;
     std::vector<std::shared_ptr <Booking>> allBookings;
     std::vector<std::shared_ptr <Customer>> allCustomers;
     std::vector<std::shared_ptr <Travel>> allTravels;
     std::map<std::string, std::shared_ptr<Airport>> iataCodes;
+    std::map<std::string, std::string> bookingClasses;
+    std::map<std::string, std::string> roomTypes;
+
 
 
 public:
+    TravelAgency();
     ~TravelAgency();
 
     void readFile(std::string filePath, int startRow = 0, int flightCount = 0, int hotelCount = 0, int carCount = 0,
@@ -58,11 +63,16 @@ public:
     long getNextTravelId();
     void addTravel(std::shared_ptr<Travel> travel);
 
+    const std::map<std::string, std::shared_ptr<Airport>> &getIataCodes();
 
+    std::string getIataCode(std::string airportName);
+    void addBooking(std::shared_ptr<Booking> booking);
 
-private slots:
+    void saveToJson(SortFunktor funktor, std::string filePath);
 
-    void changeInformativeText();
+    std::string getBookingClassChar(std::string bookingClass);
+    std::string getRoomTypeAcronym(std::string roomType);
+
 
 };
 

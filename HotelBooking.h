@@ -16,7 +16,6 @@ private:
     std::string town;
     std::string roomType;
     std::string hotelCoordinates;
-    std::map<std::string, std::string> roomTypes;
 
 public:
     HotelBooking(std::string id, double price, std::string fromDate, std::string toDate, long travelId,

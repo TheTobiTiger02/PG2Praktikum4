@@ -12,6 +12,7 @@
 
 class FlightBooking : public Booking {
 
+
 private:
     std::string fromDestination;
     std::string toDestination;
@@ -19,17 +20,17 @@ private:
     std::string bookingClass;
     std::string fromDestCoordinates;
     std::string toDestCoordinates;
-    std::map<char, std::string> bookingClasses;
 
 
 public:
     FlightBooking(std::string id, double price, std::string fromDate, std::string toDate, long travelId,
-                  std::string _fromDestination, std::string _toDestination, std::string _airline, char bookingChar,
+                  std::string _fromDestination, std::string _toDestination, std::string _airline, std::string bookingClass,
                   std::string fromDestCoordinates, std::string toDestCoordinates);
 
     ~FlightBooking();
 
     std::string showDetails();
+
 
     void setFromDestination(const std::string &fromDestination);
 

@@ -9,16 +9,10 @@ using namespace std;
 
 FlightBooking::FlightBooking(std::string id, double price, std::string fromDate, std::string toDate, long travelId,
                              std::string _fromDestination, std::string _toDestination, std::string _airline,
-                             char bookingChar, std::string fromDestCoordinates, std::string toDestCoordinates) : Booking(id, price, fromDate, toDate, travelId),
+                             std::string bookingClass, std::string fromDestCoordinates, std::string toDestCoordinates) : Booking(id, price, fromDate, toDate, travelId),
                                                  fromDestination(_fromDestination), toDestination(_toDestination),
-                                                 airline(_airline), fromDestCoordinates(fromDestCoordinates), toDestCoordinates(toDestCoordinates) {
-    bookingClasses['Y'] = "Economy class";
-    bookingClasses['W'] = "Premium Economy class";
-    bookingClasses['J'] = "Business class";
-    bookingClasses['F'] = "First class";
+                                                 airline(_airline), bookingClass(bookingClass), fromDestCoordinates(fromDestCoordinates), toDestCoordinates(toDestCoordinates) {
 
-
-    bookingClass = bookingClasses[bookingChar];
 
 }
 
@@ -74,5 +68,7 @@ const string &FlightBooking::getFromDestCoordinates() const {
 const string &FlightBooking::getToDestCoordinates() const {
     return toDestCoordinates;
 }
+
+
 
 

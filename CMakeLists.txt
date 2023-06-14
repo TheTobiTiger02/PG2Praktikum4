@@ -6,7 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH "C:/Qt/6.5.0/mingw_64/lib/cmake")
+set(CMAKE_PREFIX_PATH "C:/Qt/6.4.2/mingw_64/lib/cmake")
 
 find_package(Qt6 COMPONENTS
         Core
@@ -14,7 +14,7 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
-add_executable(PG2Praktikum4 main.cpp Booking.cpp FlightBooking.cpp HotelBooking.cpp RentalCarReservation.cpp TravelAgency.cpp TravelAgencyUI.cpp TravelAgencyUI.h TravelAgencyUI.ui Customer.cpp Customer.h Travel.cpp Travel.h Airport.cpp Airport.h)
+add_executable(PG2Praktikum4 main.cpp Booking.cpp FlightBooking.cpp HotelBooking.cpp RentalCarReservation.cpp TravelAgency.cpp TravelAgencyUI.cpp TravelAgencyUI.h TravelAgencyUI.ui Customer.cpp Customer.h Travel.cpp Travel.h Airport.cpp Airport.h SortFunktor.cpp SortFunktor.h)
 target_link_libraries(PG2Praktikum4
         Qt::Core
         Qt::Gui

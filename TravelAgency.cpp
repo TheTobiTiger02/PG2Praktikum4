@@ -10,11 +10,22 @@
 #include <QDialogButtonBox>
 #include <QCoreApplication>
 #include <QObject>
+#include <QFileDialog>
 
 using namespace std;
 using json = nlohmann::json;
 
+TravelAgency::TravelAgency() {
+    bookingClasses["Y"] = "Economy class";
+    bookingClasses["W"] = "Premium Economy class";
+    bookingClasses["J"] = "Business class";
+    bookingClasses["F"] = "First class";
 
+    roomTypes["EZ"] = "Einzelzimmer";
+    roomTypes["DZ"] = "Doppelzimmer";
+    roomTypes["AP"] = "Appartment";
+    roomTypes["SU"] = "Suite";
+}
 TravelAgency::~TravelAgency() {
 
 }
@@ -23,15 +34,15 @@ void
 TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotelCount, int carCount, int travelCount,
                        int customerCount, double totalPrice) {
     ifstream file(filePath);
-    //msgBox = new QMessageBox;
-    static QMessageBox msgBox;
+    msgBox = new QMessageBox;
+    //static QMessageBox msgBox;
 
     //msgBox = new QMessageBox();
     if (!file) {
 
-        msgBox.setWindowTitle("Fehler beim Einlesen der Buchungen");
-        msgBox.setText("Datei konnte nicht gelesen werden");
-        msgBox.exec();
+        msgBox->setWindowTitle("Fehler beim Einlesen der Buchungen");
+        msgBox->setText("Datei konnte nicht gelesen werden");
+        msgBox->exec();
         return;
     }
     json data;
@@ -42,7 +53,6 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
 
     shared_ptr<Booking> booking;
     for (int i = startRow; i < data.size(); i++) {
-        std::cout << i << std::endl;
 
         try {
             if (data.at(i)["type"].is_null() || data.at(i)["type"].empty() ||
@@ -70,7 +80,6 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
             type = data.at(i)["type"];
             id = data.at(i)["id"];
 
-            allBookings.empty();
             if(findBooking(id) != nullptr){
                 continue;
             }
@@ -80,6 +89,7 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
             fromDate = data.at(i)["fromDate"];
             toDate = data.at(i)["toDate"];
             travelId = data.at(i)["travelId"];
+
 
             if (type == "Flight") {
                 if (data.at(i)["fromDest"].is_null() || data.at(i)["fromDest"].empty() ||
@@ -121,7 +131,8 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
 
                 booking = shared_ptr<FlightBooking>(new FlightBooking(id, price, fromDate, toDate, travelId, data.at(i)["fromDest"],
                                             data.at(i)["toDest"], data.at(i)["airline"],
-                                            data.at(i)["bookingClass"].get<string>()[0], data.at(i)["fromDestLongitude"].get<string>() + "," + data.at(i)["fromDestLatitude"].get<string>(),
+                                            bookingClasses[data.at(i)["bookingClass"]],
+                                            data.at(i)["fromDestLongitude"].get<string>() + "," + data.at(i)["fromDestLatitude"].get<string>(),
                                             data.at(i)["toDestLongitude"].get<string>() + "," + data.at(i)["toDestLatitude"].get<string>()));
                 flightCount++;
                 totalPrice += price;
@@ -148,7 +159,7 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
                     throw runtime_error("Leeres Attribut 'hotelLongitude' in Zeile " + to_string(i + 1));
                 }
                 booking = shared_ptr<HotelBooking>(new HotelBooking(id, price, fromDate, toDate, travelId, data.at(i)["hotel"],
-                                           data.at(i)["town"], data.at(i)["roomType"], data.at(i)["hotelLongitude"].get<string>() + "," + data.at(i)["hotelLatitude"].get<string>()));
+                                           data.at(i)["town"], roomTypes[data.at(i)["roomType"]], data.at(i)["hotelLongitude"].get<string>() + "," + data.at(i)["hotelLatitude"].get<string>()));
                 hotelCount++;
                 totalPrice += price;
             } else if (type == "RentalCar") {
@@ -222,97 +233,86 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
 
         }
         catch (runtime_error r) {
-            msgBox.setWindowTitle("Fehler beim Einlesen der Buchungen");
-            msgBox.setText(QString::fromStdString(r.what()));
-            msgBox.setInformativeText(
+            msgBox->setWindowTitle("Fehler beim Einlesen der Buchungen");
+            msgBox->setText(QString::fromStdString(r.what()));
+            msgBox->setInformativeText(
                     "Wenn Sie die Datei bereits korrigiert haben, wählen Sie 'Wiederholen'. Wählen Sie 'Verwerfen', um alle Buchungen zu löschen "
                     "und 'Abbrechen', um die vorhandenen Buchungen stehenzulassen und diesen Dialog zu verlassen");
 
 
-            QAbstractButton *retryButton = reinterpret_cast<QAbstractButton *>(msgBox.addButton("Wiederholen",
+            QAbstractButton *retryButton = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Wiederholen",
                                                                                                 QMessageBox::ActionRole));
-            QAbstractButton *discardButton = reinterpret_cast<QAbstractButton *>(msgBox.addButton("Verwerfen",
+            QAbstractButton *discardButton = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Verwerfen",
                                                                                                   QMessageBox::ActionRole));
 
-            QAbstractButton *cancelButton = reinterpret_cast<QAbstractButton *>(msgBox.addButton("Abbrechen",
+            QAbstractButton *cancelButton = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Abbrechen",
                                                                                                  QMessageBox::ActionRole));
-            QAbstractButton *detailsButton = msgBox.addButton("Details ausblenden", QMessageBox::ActionRole);
+            QAbstractButton *detailsButton = msgBox->addButton("Details ausblenden", QMessageBox::ActionRole);
 
 
             detailsButton->disconnect();
-            QObject::connect(detailsButton, &QAbstractButton::clicked, &msgBox, [=]() {
+            QObject::connect(detailsButton, &QAbstractButton::clicked, msgBox, [=]() {
                 if (detailsButton->text() == "Details ausblenden") {
                     detailsButton->setText("Details anzeigen");
-                    msgBox.setInformativeText("");
-                    //msgBox.exec();
+                    msgBox->setInformativeText("");
+                    //msgBox->exec();
                 } else {
                     detailsButton->setText("Details ausblenden");
-                    msgBox.setInformativeText(
+                    msgBox->setInformativeText(
                             "Wenn Sie die Datei bereits korrigiert haben, wählen Sie 'Wiederholen'. Wählen Sie 'Verwerfen', um alle Buchungen zu löschen "
                             "und 'Abbrechen', um die vorhandenen Buchungen stehenzulassen und diesen Dialog zu verlassen");
-                    msgBox.setFixedSize(400, 200);
-                    //msgBox.exec();
+                    msgBox->setFixedSize(400, 200);
+                    //msgBox->exec();
 
                 }
             });
-            msgBox.exec();
+            msgBox->exec();
 
 
-            if (msgBox.clickedButton() == retryButton) {
+            if (msgBox->clickedButton() == retryButton) {
                 readFile(filePath, i, flightCount, hotelCount, carCount, travelCount, customerCount, totalPrice);
                 return;
             }
-            if (msgBox.clickedButton() == discardButton) {
+            if (msgBox->clickedButton() == discardButton) {
                 allBookings.clear();
                 return;
             }
-            if (msgBox.clickedButton() == cancelButton) {
+            if (msgBox->clickedButton() == cancelButton) {
                 return;
             }
 
         }
         catch (json::type_error) {
-            msgBox.setWindowTitle("Fehler beim Einlesen der Buchungen");
-            msgBox.setText(
-                    "Attribut price hat keinen numerischen Wert in Zeile " + QString::fromStdString(to_string(i + 1)));
-            msgBox.setInformativeText(
+            msgBox->setWindowTitle("Fehler beim Einlesen der Buchungen");
+            msgBox->setText(
+                    "Falscher Datentyp in Zeile " + QString::fromStdString(to_string(i + 1)));
+            msgBox->setInformativeText(
                     "Wenn Sie die Datei bereits korrigiert haben, wählen Sie 'Wiederholen'. Wählen Sie 'Verwerfen', um alle Buchungen zu löschen "
                     "und 'Abbrechen', um die vorhandenen Buchungen stehenzulassen und diesen Dialog zu verlassen");
 
 
-            QAbstractButton *retryButton = reinterpret_cast<QAbstractButton *>(msgBox.addButton("Wiederholen",
+            QAbstractButton *retryButton = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Wiederholen",
                                                                                                 QMessageBox::ActionRole));
-            QAbstractButton *discardButton = reinterpret_cast<QAbstractButton *>(msgBox.addButton("Verwerfen",
+            QAbstractButton *discardButton = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Verwerfen",
                                                                                                   QMessageBox::ActionRole));
 
 
-            QAbstractButton *cancelButton = reinterpret_cast<QAbstractButton *>(msgBox.addButton("Abbrechen",
+            QAbstractButton *cancelButton = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Abbrechen",
                                                                                                  QMessageBox::ActionRole));
-            discardButton->disconnect();
 
-            QAbstractButton *doNotCloseButton = msgBox.addButton("This button will not close anything",
-                                                                 QMessageBox::ActionRole);
-            doNotCloseButton->disconnect();
+            msgBox->exec();
 
 
-            QObject::connect(discardButton, &QAbstractButton::clicked, &msgBox, [=]() {
-                discardButton->setText("Test");
-            });
-
-
-            msgBox.exec();
-
-
-            if (msgBox.clickedButton() == retryButton) {
+            if (msgBox->clickedButton() == retryButton) {
                 readFile(filePath, i, flightCount, hotelCount, carCount, travelCount, customerCount, totalPrice);
                 return;
             }
-            if (msgBox.clickedButton() == discardButton) {
+            if (msgBox->clickedButton() == discardButton) {
                 allBookings.clear();
                 return;
             }
 
-            if (msgBox.clickedButton() == cancelButton) {
+            if (msgBox->clickedButton() == cancelButton) {
                 return;
             }
 
@@ -323,8 +323,8 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
     file.close();
 
 
-    msgBox.setWindowTitle("Datei erfolgreich eingelesen");
-    msgBox.setText(QString::fromStdString(
+    msgBox->setWindowTitle("Datei erfolgreich eingelesen");
+    msgBox->setText(QString::fromStdString(
             "Es wurden " + to_string(flightCount) + " Flugbuchungen, " + to_string(hotelCount) +
             " Hotelbuchungen und " +
             to_string(carCount) + " Mietwagenreservierungen im Gesamtwert von " + to_string(totalPrice) +
@@ -333,7 +333,7 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
             to_string(getTravelCount(1)) + " Reisen gebucht. Zur Reise mit der ID "
                                            "17 gehören " + to_string(
                     getBookingCount(17)) + " Buchungen."));
-    msgBox.exec();
+    msgBox->exec();
     return;
 
 
@@ -341,13 +341,14 @@ TravelAgency::readFile(string filePath, int startRow, int flightCount, int hotel
 
 bool TravelAgency::readIataCodes(string filePath) {
     ifstream file(filePath);
-    static QMessageBox msgBox;
+    //static QMessageBox msgBox;
+    msgBox = new QMessageBox();
 
     if (!file) {
 
-        msgBox.setWindowTitle("Fehler beim Einlesen der Iata-Codes");
-        msgBox.setText("Datei konnte nicht gelesen werden");
-        msgBox.exec();
+        msgBox->setWindowTitle("Fehler beim Einlesen der Iata-Codes");
+        msgBox->setText("Datei konnte nicht gelesen werden");
+        msgBox->exec();
         return false;
     }
     json data;
@@ -355,24 +356,23 @@ bool TravelAgency::readIataCodes(string filePath) {
     std::string name{}, isoCountry{}, municipality{}, iataCode{};
     try{
         for(int i = 0; i < data.size(); i++){
-            /*if (data.at(i)["name"].is_null() || data.at(i)["name"].empty() ||
+            if (data.at(i)["name"].is_null() || data.at(i)["name"].empty() ||
                 data.at(i)["name"].get<string>().length() == 0) {
-                throw runtime_error("Leeres Attribut 'name' in Zeile " + to_string(i + 1));
+                continue;
             }
             if (data.at(i)["iso_country"].is_null() || data.at(i)["iso_country"].empty() ||
                 data.at(i)["iso_country"].get<string>().length() == 0) {
-                throw runtime_error("Leeres Attribut 'iso_country' in Zeile " + to_string(i + 1));
+                continue;
             }
             if (data.at(i)["municipality"].is_null() || data.at(i)["municipality"].empty() ||
                 data.at(i)["municipality"].get<string>().length() == 0) {
-                std::cout << data.at(i)["name"];
-                throw runtime_error("Leeres Attribut 'municipality' in Zeile " + to_string(i + 1));
+                continue;
             }
             if (data.at(i)["iata_code"].is_null() || data.at(i)["iata_code"].empty() ||
                 data.at(i)["iata_code"].get<string>().length() == 0) {
-                throw runtime_error("Leeres Attribut 'iata_code' in Zeile " + to_string(i + 1));
+                continue;
             }
-             */
+
             name = data.at(i)["name"];
             //std::cout << name << endl;
             isoCountry = data.at(i)["iso_country"];
@@ -465,8 +465,8 @@ long TravelAgency::getNextCustomerId() {
     long id = 1;
 
     for(auto c : allCustomers){
-        if(c->getId() > id){
-            id = c->getId();
+        if(c->getId() >= id){
+            id = c->getId() + 1;
         }
     }
     return id;
@@ -480,8 +480,8 @@ long TravelAgency::getNextTravelId() {
     long id = 1;
 
     for(auto t : allTravels){
-        if(t->getId() > id){
-            id = t->getId();
+        if(t->getId() >= id){
+            id = t->getId() + 1;
         }
     }
     return id;
@@ -489,5 +489,103 @@ long TravelAgency::getNextTravelId() {
 
 void TravelAgency::addTravel(std::shared_ptr<Travel> travel) {
     allTravels.push_back(travel);
+}
+
+const map<std::string, std::shared_ptr<Airport>> &TravelAgency::getIataCodes() {
+    return iataCodes;
+}
+
+std::string TravelAgency::getIataCode(std::string airportName) {
+    for(auto a : iataCodes){
+        if(a.second->getName() == airportName){
+            return a.first;
+        }
+    }
+    return nullptr;
+}
+
+void TravelAgency::addBooking(std::shared_ptr<Booking> booking) {
+    allBookings.push_back(booking);
+}
+
+std::string TravelAgency::getBookingClassChar(std::string bookingClass) {
+    for(auto s : bookingClasses){
+        if(s.second == bookingClass){
+            return s.first;
+        }
+    }
+}
+
+std::string TravelAgency::getRoomTypeAcronym(std::string roomType) {
+    for(auto s : roomTypes){
+        if(s.second == roomType){
+
+            return s.first;
+        }
+    }
+}
+
+void TravelAgency::saveToJson(SortFunktor funktor, std::string filePath) {
+    std::sort(allBookings.begin(), allBookings.end(), funktor);
+
+    json bookingJson;
+    json bookingListJson;
+
+    for(auto b : allBookings){
+        bookingJson["id"] = b->getId();
+        bookingJson["price"] = b->getPrice();
+        bookingJson["fromDate"] = b->getFromDate().toString("yyyyMMdd").toStdString();
+        bookingJson["toDate"] = b->getToDate().toString("yyyyMMdd").toStdString();
+        bookingJson["travelId"] = b->getTravelId();
+        std::shared_ptr<Travel> travel = findTravel(b->getTravelId());
+        std::shared_ptr<Customer> customer = findCustomer(travel->getCustomerId());
+        bookingJson["customerId"] = customer->getId();
+        bookingJson["customerName"] = customer->getName();
+
+        if (std::shared_ptr<FlightBooking> flightBooking = dynamic_pointer_cast<FlightBooking>(b)){
+            bookingJson["type"] = "Flight";
+            bookingJson["fromDest"] = flightBooking->getFromDestination();
+            bookingJson["toDest"] = flightBooking->getToDestination();
+            bookingJson["airline"] = flightBooking->getAirline();
+            //std::cout << "\n" << getBookingClassChar(flightBooking->getBookingClass());
+            std::string test2 = getBookingClassChar(flightBooking->getBookingClass());
+            //std::cout << test2;
+
+
+
+            bookingJson["bookingClass"] = getBookingClassChar(flightBooking->getBookingClass());
+            bookingJson["fromDestLongitude"] = QString::fromStdString(flightBooking->getFromDestCoordinates()).split(",")[0].toStdString();
+            bookingJson["fromDestLatitude"] = QString::fromStdString(flightBooking->getFromDestCoordinates()).split(",")[1].toStdString();
+            bookingJson["toDestLongitude"] = QString::fromStdString(flightBooking->getToDestCoordinates()).split(",")[0].toStdString();
+            bookingJson["toDestLatitude"] = QString::fromStdString(flightBooking->getToDestCoordinates()).split(",")[1].toStdString();
+        }
+        else if(std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(b)){
+            bookingJson["type"] = "Hotel";
+            bookingJson["hotel"] = hotelBooking->getHotel();
+            bookingJson["town"] = hotelBooking->getTown();
+            bookingJson["roomType"] = getRoomTypeAcronym(hotelBooking->getRoomType());
+            bookingJson["hotelLongitude"] = QString::fromStdString(hotelBooking->getHotelCoordinates()).split(",")[0].toStdString();
+            bookingJson["hotelLatitude"] = QString::fromStdString(hotelBooking->getHotelCoordinates()).split(",")[1].toStdString();
+        }
+        else if(std::shared_ptr<RentalCarReservation> rentalCarReservation = dynamic_pointer_cast<RentalCarReservation>(b)){
+            bookingJson["type"] = "RentalCar";
+            bookingJson["pickupLocation"] = rentalCarReservation->getPickupLocation();
+            bookingJson["returnLocation"] = rentalCarReservation->getReturnLocation();
+            bookingJson["company"] = rentalCarReservation->getCompany();
+            bookingJson["vehicleClass"] = rentalCarReservation->getVehicleClass();
+            bookingJson["pickupLongitude"] = QString::fromStdString(rentalCarReservation->getPickupCoordinates()).split(",")[0].toStdString();
+            bookingJson["pickupLatitude"] = QString::fromStdString(rentalCarReservation->getPickupCoordinates()).split(",")[1].toStdString();
+            bookingJson["returnLongitude"] = QString::fromStdString(rentalCarReservation->getReturnCoordinates()).split(",")[0].toStdString();
+            bookingJson["returnLatitude"] = QString::fromStdString(rentalCarReservation->getReturnCoordinates()).split(",")[1].toStdString();
+        }
+        bookingListJson.push_back(bookingJson);
+
+    }
+    //ofstream outputStream("../Studierende.json");
+    ofstream outputStream(filePath);
+    if (!outputStream) cerr << "JSON Datei konnte nicht geoeffnet werden";
+    outputStream << bookingListJson.dump(4);
+    outputStream.close();
+
 }
 

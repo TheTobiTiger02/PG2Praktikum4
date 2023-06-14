@@ -16,6 +16,7 @@
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QDateEdit>
+#include <QComboBox>
 
 TravelAgencyUI::TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWidget *parent) : QMainWindow(parent),
                                                                                ui(new Ui::TravelAgencyUI),
@@ -35,6 +36,7 @@ TravelAgencyUI::TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWid
     connect(ui->rentalMapButton, SIGNAL(clicked(bool)), this, SLOT(onOpenMapButtonClicked()));
     connect(ui->actionHinzuf_gen, SIGNAL(triggered(bool)), this, SLOT(onAddCustomer()));
     connect(ui->actionHinzuf_gen_2, SIGNAL(triggered(bool)), this, SLOT(onAddBooking()));
+    connect(ui->actionSpeichern, SIGNAL(triggered(bool)), this, SLOT(onSaveBookings()));
 
 
     ui->customerGroupBox->setVisible(false);
@@ -52,7 +54,6 @@ TravelAgencyUI::TravelAgencyUI(std::shared_ptr<TravelAgency> _travelAgency, QWid
 
     ui->bookingGroupBox->setVisible(false);
 
-    QString test = QUuid::createUuid().toString();
 
 }
 
@@ -62,9 +63,6 @@ TravelAgencyUI::~TravelAgencyUI() {
 }
 
 void TravelAgencyUI::onReadBookings() {
-
-
-
 
     QString filePath = QFileDialog::getOpenFileName(this, "Datei auswählen", "*.json");
     travelAgency->readFile(filePath.toStdString());
@@ -321,7 +319,6 @@ void TravelAgencyUI::onOpenMapButtonClicked() {
         }
 
     }
-    std::cout << geoJson.toStdString();
     QDesktopServices::openUrl(QUrl(geoJson));
 
 }
@@ -333,6 +330,7 @@ void TravelAgencyUI::onAddCustomer() {
         return;
     }
     long id = travelAgency->getNextCustomerId();
+    std::cout << id;
     std::shared_ptr<Customer> customer = std::shared_ptr<Customer>(new Customer(id, customerName));
     travelAgency->addCustomer(customer);
     QMessageBox::information(this, "Kunde hinzugefügt", "Der Kunde mit dem Namen " + QString::fromStdString(customerName) + " wurde mit der id " + QString::fromStdString(std::to_string(id)) + " hinzugefügt");
@@ -340,17 +338,30 @@ void TravelAgencyUI::onAddCustomer() {
 }
 
 void TravelAgencyUI::onAddBooking() {
-    QLineEdit* fromDest;
-    QLineEdit* toDest;
+    QLineEdit* fromDestLongitude;
+    QLineEdit* fromDestLatitude;
+    QLineEdit* toDestLongitude;
+    QLineEdit* toDestLatitude;
     QLineEdit* airline;
-    QLineEdit* bookingClass;
+    //QLineEdit* bookingClass;
     QLineEdit* pickupLocation;
+    QLineEdit* pickupLongitude;
+    QLineEdit* pickupLatitude;
     QLineEdit* returnLocation;
+    QLineEdit* returnLongitude;
+    QLineEdit* returnLatitude;
     QLineEdit* company;
     QLineEdit* vehicleClass;
     QLineEdit* hotel;
+    QLineEdit* hotelLongitude;
+    QLineEdit* hotelLatitude;
     QLineEdit* town;
-    QLineEdit* roomType;
+
+    QComboBox* fromDestCombobox;
+    QComboBox* toDestCombobox;
+    QComboBox* bookingClass;
+    QComboBox* roomType;
+
 
     QDialog dialog(this);
     QFormLayout form(&dialog);
@@ -385,7 +396,7 @@ void TravelAgencyUI::onAddBooking() {
 
         msgBox = new QMessageBox();
         msgBox->setWindowTitle("Buchung hinzufügen");
-        msgBox->setText("Soll die Reise zu einer bestehenden Reise hinzugefügt werden, oder soll eine neue Reise erstellt werden?");
+        msgBox->setText("Was für eine Buchung möchten Sie hinzufügen?");
         QAbstractButton *flightBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Flugbuchung",
                                                                                                QMessageBox::ActionRole));
         QAbstractButton *hotelBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Hotelbuchung",
@@ -403,18 +414,40 @@ void TravelAgencyUI::onAddBooking() {
         if(msgBox->clickedButton() == flightBooking){
             addedBooking = "Flight";
 
-            fromDest = new QLineEdit(&dialog);
-            form.addRow("Start Flughafen", fromDest);
+            fromDestCombobox = new QComboBox(&dialog);
+            travelAgency->getIataCodes();
+            for(auto a : travelAgency->getIataCodes()){
+                fromDestCombobox->addItem(QString::fromStdString(a.second->getName()));
+            }
+            form.addRow("Start Flughafen", fromDestCombobox);
 
-            toDest = new QLineEdit(&dialog);
+            fromDestLongitude = new QLineEdit(&dialog);
+            fromDestLatitude = new QLineEdit(&dialog);
+            form.addRow("Start Flughafen Längengrad", fromDestLongitude);
+            form.addRow("Start Flughafen Breitengrad", fromDestLatitude);
 
-            form.addRow("Ziel Flughafen", toDest);
+            toDestCombobox = new QComboBox(&dialog);
+            for(auto a : travelAgency->getIataCodes()){
+                toDestCombobox->addItem(QString::fromStdString(a.second->getName()));
+            }
+            form.addRow("Ziel Flughafen", toDestCombobox);
+
+            toDestLongitude = new QLineEdit(&dialog);
+            toDestLatitude = new QLineEdit(&dialog);
+            form.addRow("Ziel Flughafen Längengrad", toDestLongitude);
+            form.addRow("Ziel Flughafen Breitengrad", toDestLatitude);
 
             airline = new QLineEdit(&dialog);
             form.addRow("Fluggesellschaft", airline);
 
-            bookingClass = new QLineEdit(&dialog);
+            bookingClass = new QComboBox(&dialog);
+            bookingClass->addItem("Economy class");
+            bookingClass->addItem("Premium Economy class");
+            bookingClass->addItem("Business class");
+            bookingClass->addItem("First class");
             form.addRow("Buchungsklasse", bookingClass);
+
+
         }
         if(msgBox->clickedButton() == hotelBooking){
             addedBooking = "Hotel";
@@ -424,7 +457,11 @@ void TravelAgencyUI::onAddBooking() {
             town = new QLineEdit(&dialog);
             form.addRow("Stadt", town);
 
-            roomType = new QLineEdit(&dialog);
+            roomType = new QComboBox(&dialog);
+            roomType->addItem("Einzelzimmer");
+            roomType->addItem("Doppelzimmer");
+            roomType->addItem("Appartment");
+            roomType->addItem("Suite");
             form.addRow("Zimmertyp", roomType);
         }
         if(msgBox->clickedButton() == rentalBooking){
@@ -450,37 +487,223 @@ void TravelAgencyUI::onAddBooking() {
 
         if (dialog.exec() == QDialog::Accepted ) {
             std::shared_ptr<Booking> booking;
+            long travelId = travelAgency->getNextTravelId();
+            std::string bookingId = QUuid::createUuid().toString().toStdString();
             if(addedBooking == "Flight"){
-                //booking = new FlightBooking(QUuid::createUuid().toString().toStdString(), price->value(), fromDate->date().toString(), toDate->date().toString(), fromDest->text().toStdString(), toDest->text().toStdString(), airline->text().toStdString(), bookingClass->text().toStdString());
+                booking = std::shared_ptr<Booking>(new FlightBooking(bookingId, price->value(), fromDate->date().toString("yyyyMMdd").toStdString(), toDate->date().toString("yyyyMMdd").toStdString(),
+                                            travelId, travelAgency->getIataCode(fromDestCombobox->currentText().toStdString()),
+                                            travelAgency->getIataCode(toDestCombobox->currentText().toStdString()),
+                                            airline->text().toStdString(), bookingClass->currentText().toStdString(),
+                                            fromDestLongitude->text().toStdString() + "," + fromDestLatitude->text().toStdString(), toDestLongitude->text().toStdString()
+                                            + "," + toDestLatitude->text().toStdString()));
+
             }
             else if(addedBooking == "Hotel"){
-
+                booking = std::shared_ptr<Booking>(new HotelBooking(bookingId,  price->value(), fromDate->date().toString("yyyyMMdd").toStdString(), toDate->date().toString("yyyyMMdd").toStdString(),
+                                                                    travelId, hotel->text().toStdString(), town->text().toStdString(),
+                                                                    roomType->currentText().toStdString(),
+                                                                    hotelLongitude->text().toStdString() + "," + hotelLatitude->text().toStdString()));
             }
             else{
-
+                booking = std::shared_ptr<Booking>(new RentalCarReservation(bookingId,  price->value(), fromDate->date().toString("yyyyMMdd").toStdString(), toDate->date().toString("yyyyMMdd").toStdString(),
+                                                                            travelId, pickupLocation->text().toStdString(), returnLocation->text().toStdString(),
+                                                                            company->text().toStdString(), vehicleClass->text().toStdString(),
+                                                                            pickupLongitude->text().toStdString() + "," + pickupLatitude->text().toStdString(),
+                                                                            returnLongitude->text().toStdString() + "," + returnLatitude->text().toStdString()));
             }
-            //std::shared_ptr<Booking> booking = std::shared_ptr<Booking>(new Booking(QUuid::createUuid().toString().toStdString(), price->value(), fromDate->date().toString(), toDate->date().toString()));
             long customerId = QInputDialog::getInt(this, "KundenId", "Zu welchem Kunden soll die Reise hinzugefügt werden");
-
-            if(travelAgency->findCustomer(customerId) == nullptr){
+            std::shared_ptr<Customer> customer = travelAgency->findCustomer(customerId);
+            if(customer == nullptr){
                 QMessageBox::information(this, "Fehler", "Kunde mit id " + QString::number(customerId) + " nicht gefunden");
                 return;
             }
 
-            long travelId = travelAgency->getNextTravelId();
+            travelId = travelAgency->getNextTravelId();
             std::shared_ptr<Travel> travel = std::shared_ptr<Travel>(new Travel(travelId, customerId));
+            travel->addBooking(booking);
 
-
+            customer->addTravel(travel);
             travelAgency->addTravel(travel);
+            travelAgency->addBooking(booking);
+
+            QMessageBox::information(this, "Buchung hinzugefügt", "Die Buchung wurde erfolgreich zu der Reise mit der Id "
+            + QString::number(travelId) + " hinzugefügt und die Reise wurde dem Kunden mit der Id " + QString::number(customerId) + " hinzugefügt");
         }
 
     }
     if(msgBox->clickedButton() == travel){
+        long travelId = QInputDialog::getInt(this, "ReiseId", "Zu welcher Reise soll die Buchung hinzugefügt werden");
+        std::shared_ptr<Travel> travel = travelAgency->findTravel(travelId);
+        if(travel == nullptr){
+            QMessageBox::information(this, "Fehler", "Die Reise mit der Id " + QString::number(travelId) + " konnte nicht gefunden werden");
+            return;
+        }
+        msgBox = new QMessageBox();
+        msgBox->setWindowTitle("Buchung hinzufügen");
+        msgBox->setText("Was für eine Buchung möchten Sie hinzufügen?");
+        QAbstractButton *flightBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Flugbuchung",
+                                                                                               QMessageBox::ActionRole));
+        QAbstractButton *hotelBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Hotelbuchung",
+                                                                                              QMessageBox::ActionRole));
+        QAbstractButton *rentalBooking = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Mietwagenbuchung",
+                                                                                               QMessageBox::ActionRole));
+        QAbstractButton *cancel = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Abbrechen",
+                                                                                        QMessageBox::ActionRole));
 
+        msgBox->exec();
+
+        if(msgBox->clickedButton() == cancel){
+            return;
+        }
+        if(msgBox->clickedButton() == flightBooking){
+            addedBooking = "Flight";
+
+            fromDestCombobox = new QComboBox(&dialog);
+            travelAgency->getIataCodes();
+            for(auto a : travelAgency->getIataCodes()){
+                fromDestCombobox->addItem(QString::fromStdString(a.second->getName()));
+            }
+            form.addRow("Start Flughafen", fromDestCombobox);
+
+            fromDestLongitude = new QLineEdit(&dialog);
+            fromDestLatitude = new QLineEdit(&dialog);
+            form.addRow("Start Flughafen Längengrad", fromDestLongitude);
+            form.addRow("Start Flughafen Breitengrad", fromDestLatitude);
+
+            toDestCombobox = new QComboBox(&dialog);
+            for(auto a : travelAgency->getIataCodes()){
+                toDestCombobox->addItem(QString::fromStdString(a.second->getName()));
+            }
+            form.addRow("Ziel Flughafen", toDestCombobox);
+
+            toDestLongitude = new QLineEdit(&dialog);
+            toDestLatitude = new QLineEdit(&dialog);
+            form.addRow("Ziel Flughafen Längengrad", toDestLongitude);
+            form.addRow("Ziel Flughafen Breitengrad", toDestLatitude);
+
+            airline = new QLineEdit(&dialog);
+            form.addRow("Fluggesellschaft", airline);
+
+            bookingClass = new QComboBox(&dialog);
+            bookingClass->addItem("Economy class");
+            bookingClass->addItem("Premium Economy class");
+            bookingClass->addItem("Business class");
+            bookingClass->addItem("First class");
+            form.addRow("Buchungsklasse", bookingClass);
+
+
+        }
+        if(msgBox->clickedButton() == hotelBooking){
+            addedBooking = "Hotel";
+            hotel = new QLineEdit(&dialog);
+            form.addRow("Hotel", hotel);
+
+            town = new QLineEdit(&dialog);
+            form.addRow("Stadt", town);
+
+            roomType = new QComboBox(&dialog);
+            roomType->addItem("Einzelzimmer");
+            roomType->addItem("Doppelzimmer");
+            roomType->addItem("Appartment");
+            roomType->addItem("Suite");
+            form.addRow("Zimmertyp", roomType);
+        }
+        if(msgBox->clickedButton() == rentalBooking){
+            addedBooking = "Rental";
+            pickupLocation = new QLineEdit(&dialog);
+            form.addRow("Abholort", pickupLocation);
+
+            returnLocation = new QLineEdit(&dialog);
+            form.addRow("Rückgabeort", returnLocation);
+
+            company = new QLineEdit(&dialog);
+            form.addRow("Firma", company);
+
+            vehicleClass = new QLineEdit(&dialog);
+            form.addRow("Fahrzeugklasse", vehicleClass);
+        }
+
+        QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                                   Qt::Horizontal, &dialog);
+        form.addRow(&buttonBox);
+        QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+        QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+        if (dialog.exec() == QDialog::Accepted ) {
+            std::shared_ptr<Booking> booking;
+            std::string bookingId = QUuid::createUuid().toString().toStdString();
+            if(addedBooking == "Flight"){
+
+                booking = std::shared_ptr<Booking>(new FlightBooking(bookingId, price->value(), fromDate->date().toString("yyyyMMdd").toStdString(), toDate->date().toString("yyyyMMdd").toStdString(),
+                                                                     travelId, travelAgency->getIataCode(fromDestCombobox->currentText().toStdString()),
+                                                                     travelAgency->getIataCode(toDestCombobox->currentText().toStdString()),
+                                                                     airline->text().toStdString(), bookingClass->currentText().toStdString(),
+                                                                     fromDestLongitude->text().toStdString() + "," + fromDestLatitude->text().toStdString(), toDestLongitude->text().toStdString()
+                                                                                                                                                             + "," + toDestLatitude->text().toStdString()));
+            }
+            else if(addedBooking == "Hotel"){
+                booking = std::shared_ptr<Booking>(new HotelBooking(bookingId,  price->value(), fromDate->date().toString("yyyyMMdd").toStdString(), toDate->date().toString("yyyyMMdd").toStdString(),
+                                                                    travelId, hotel->text().toStdString(), town->text().toStdString(),
+                                                                    roomType->currentText().toStdString(),
+                                                                    hotelLongitude->text().toStdString() + "," + hotelLatitude->text().toStdString()));
+            }
+            else{
+                booking = std::shared_ptr<Booking>(new RentalCarReservation(bookingId,  price->value(), fromDate->date().toString("yyyyMMdd").toStdString(), toDate->date().toString("yyyyMMdd").toStdString(),
+                                                                            travelId, pickupLocation->text().toStdString(), returnLocation->text().toStdString(),
+                                                                            company->text().toStdString(), vehicleClass->text().toStdString(),
+                                                                            pickupLongitude->text().toStdString() + "," + pickupLatitude->text().toStdString(),
+                                                                            returnLongitude->text().toStdString() + "," + returnLatitude->text().toStdString()));
+            }
+
+
+            travel->addBooking(booking);
+
+            travelAgency->addBooking(booking);
+
+            QMessageBox::information(this, "Buchung hinzugefügt", "Die Buchung wurde erfolgreich zu der Reise mit der Id "
+                                                                  + QString::number(travelId) + " hinzugefügt");
+        }
     }
     if(msgBox->clickedButton() == cancel){
         return;
     }
+}
+
+void TravelAgencyUI::onSaveBookings() {
+    msgBox = new QMessageBox();
+    msgBox->setWindowTitle("Buchungen sortieren");
+    msgBox->setText("Wonach sollen die Buchungen sortiert werden");
+    QAbstractButton *price = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Preis",
+                                                                                           QMessageBox::ActionRole));
+    QAbstractButton *fromDate = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Startdatum",
+                                                                                          QMessageBox::ActionRole));
+    QAbstractButton *toDate = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Enddatum",
+                                                                                           QMessageBox::ActionRole));
+    QAbstractButton *travelId = reinterpret_cast<QAbstractButton *>(msgBox->addButton("ReiseId",
+                                                                                    QMessageBox::ActionRole));
+    QAbstractButton *cancel = reinterpret_cast<QAbstractButton *>(msgBox->addButton("Abbrechen",
+                                                                                      QMessageBox::ActionRole));
+
+    msgBox->exec();
+
+    if(msgBox->clickedButton() == price){
+        funktor.setSortParameter(SortFunktor::PRICE);
+    }
+    if(msgBox->clickedButton() == fromDate){
+        funktor.setSortParameter(SortFunktor::FROMDATE);
+    }
+    if(msgBox->clickedButton() == toDate){
+        funktor.setSortParameter(SortFunktor::TODATE);
+    }
+    if(msgBox->clickedButton() == travelId){
+        funktor.setSortParameter(SortFunktor::TRAVELID);
+    }
+    if(msgBox->clickedButton() == cancel){
+        return;
+    }
+    travelAgency->saveToJson(funktor, QFileDialog::getSaveFileName(this, tr("Datei speichern"),
+                                                                   "../",
+                                                                   tr("(*.json)")).toStdString());
 }
 
 
