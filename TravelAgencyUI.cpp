@@ -192,6 +192,9 @@ void TravelAgencyUI::loadBookingDetails() {
 
     if (std::shared_ptr<FlightBooking> flightBooking = dynamic_pointer_cast<FlightBooking>(activeBooking)) {
         ui->bookingTabWidget->setCurrentWidget(ui->flightTab);
+        ui->flightTab->setEnabled(true);
+        ui->hotelTab->setEnabled(false);
+        ui->rentalTab->setEnabled(false);
 
         std::shared_ptr<Airport> fromAirport = travelAgency->getAirport(flightBooking->getFromDestination());
         std::shared_ptr<Airport> toAirport = travelAgency->getAirport(flightBooking->getToDestination());
@@ -209,11 +212,18 @@ void TravelAgencyUI::loadBookingDetails() {
 
     } else if (std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(activeBooking)) {
         ui->bookingTabWidget->setCurrentWidget(ui->hotelTab);
+        ui->hotelTab->setEnabled(true);
+        ui->flightTab->setEnabled(false);
+        ui->rentalTab->setEnabled(false);
+
         ui->hotelNameLineEdit->setText(QString::fromStdString(hotelBooking->getHotel()));
         ui->hotelTownLineEdit->setText(QString::fromStdString(hotelBooking->getTown()));
         ui->hotelRoomLineEdit->setText(QString::fromStdString(hotelBooking->getRoomType()));
     } else if (std::shared_ptr<RentalCarReservation> rentalCarReservation = dynamic_pointer_cast<RentalCarReservation>(activeBooking)) {
         ui->bookingTabWidget->setCurrentWidget(ui->rentalTab);
+        ui->rentalTab->setEnabled(true);
+        ui->flightTab->setEnabled(false);
+        ui->hotelTab->setEnabled(false);
         ui->rentalPickupLineEdit->setText(QString::fromStdString(rentalCarReservation->getPickupLocation()));
         ui->rentalReturnLineEdit->setText(QString::fromStdString(rentalCarReservation->getReturnLocation()));
         ui->rentalCompanyLineEdit->setText(QString::fromStdString(rentalCarReservation->getCompany()));
