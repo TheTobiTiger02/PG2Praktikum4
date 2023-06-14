@@ -205,14 +205,6 @@ void TravelAgencyUI::loadBookingDetails() {
         ui->flightAirlineLineEdit->setText(QString::fromStdString(flightBooking->getAirline()));
         ui->flightClassLineEdit->setText(QString::fromStdString(flightBooking->getBookingClass()));
 
-        /*QDesktopServices::openUrl(QUrl("http://townsendjennings.com/geo/?geojson={"
-                                       "\"type\":\"LineString\","
-                                       "\"coordinates\":[ "
-                                       "[30, 10], [10, 30]"
-                                       "], "
-                                       "\"title\":\"Test\""
-                                       "}" ));
-                                       */
 
 
     } else if (std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(activeBooking)) {
@@ -293,21 +285,35 @@ void TravelAgencyUI::onOpenMapButtonClicked() {
                                                                                                                                                                              "]"
                                                                                                                                                                              "}";
 
+
     }
     else if(std::shared_ptr<HotelBooking> hotelBooking = dynamic_pointer_cast<HotelBooking>(activeBooking)){
-        geoJson =  "http://townsendjennings.com/geo/?geojson={"
-                   "\"type\":\"Point\","
-                   "\"coordinates\":["
-                    + QString::fromStdString(hotelBooking->getHotelCoordinates()) + "]"
-                                                                                                                                                                    "}";
+
+        geoJson = "http://townsendjennings.com/geo/?geojson={"
+                  "\"type\": \"Feature\","
+                  "\"geometry\": {"
+                  "\"type\": \"Point\","
+                  "\"coordinates\": [" + QString::fromStdString(hotelBooking->getHotelCoordinates()) + "]"
+                                                                                                       "},"
+                                                                                                       "\"properties\": {"
+                                                                                                       "\"Hotel\": \"" + QString::fromStdString(hotelBooking->getHotel()) + "\""
+                                                                                                       "}"
+                                                                                                       "}";
     }
     else if(std::shared_ptr<RentalCarReservation> rentalCarReservation = dynamic_pointer_cast<RentalCarReservation>(activeBooking)){
         if(rentalCarReservation->getReturnLocation() == rentalCarReservation->getPickupLocation()){
-            geoJson =  "http://townsendjennings.com/geo/?geojson={"
-                       "\"type\":\"Point\","
-                       "\"coordinates\":["
-                       + QString::fromStdString(rentalCarReservation->getPickupCoordinates()) + "]"
-                                                                                       "}";
+
+            geoJson = "http://townsendjennings.com/geo/?geojson={"
+                      "\"type\": \"Feature\","
+                      "\"geometry\": {"
+                      "\"type\": \"Point\","
+                      "\"coordinates\": [" + QString::fromStdString(rentalCarReservation->getPickupCoordinates()) + "]"
+                                                                                                           "},"
+                                                                                                           "\"properties\": {"
+                                                                                                           "\"Station\": \"" + QString::fromStdString(rentalCarReservation->getPickupLocation()) + "\","
+                                                                                                                                                                                                   "\"Firma\": \"" + QString::fromStdString(rentalCarReservation->getCompany()) + "\""
+                                                                                                                                                                                "}"
+                                                                                                                                                                                "}";
         }
         else{
             geoJson =  "http://townsendjennings.com/geo/?geojson={"
@@ -338,6 +344,14 @@ void TravelAgencyUI::onAddCustomer() {
 }
 
 void TravelAgencyUI::onAddBooking() {
+
+    if(!readIataCodes){
+        msgBox = new QMessageBox();
+        msgBox->setWindowTitle("Iata-Codes nicht eingelesen");
+        msgBox->setText("Sie müssen zuerst die Datei mit den Iata-Codes einlesen");
+        msgBox->exec();
+        return;
+    }
     QLineEdit* fromDestLongitude;
     QLineEdit* fromDestLatitude;
     QLineEdit* toDestLongitude;
@@ -454,6 +468,11 @@ void TravelAgencyUI::onAddBooking() {
             hotel = new QLineEdit(&dialog);
             form.addRow("Hotel", hotel);
 
+            hotelLongitude = new QLineEdit(&dialog);
+            hotelLatitude = new QLineEdit(&dialog);
+            form.addRow("Hotel Breitengrad", hotelLongitude);
+            form.addRow("Hotel Längengrad", hotelLatitude);
+
             town = new QLineEdit(&dialog);
             form.addRow("Stadt", town);
 
@@ -466,11 +485,22 @@ void TravelAgencyUI::onAddBooking() {
         }
         if(msgBox->clickedButton() == rentalBooking){
             addedBooking = "Rental";
+
             pickupLocation = new QLineEdit(&dialog);
             form.addRow("Abholort", pickupLocation);
 
+            pickupLongitude = new QLineEdit(&dialog);
+            pickupLatitude = new QLineEdit(&dialog);
+            form.addRow("Abholort Breitengrad", pickupLongitude);
+            form.addRow("Abholort Längengrad", pickupLatitude);
+
             returnLocation = new QLineEdit(&dialog);
             form.addRow("Rückgabeort", returnLocation);
+
+            pickupLongitude = new QLineEdit(&dialog);
+            pickupLatitude = new QLineEdit(&dialog);
+            form.addRow("Abholort Breitengrad", pickupLongitude);
+            form.addRow("Abholort Längengrad", pickupLatitude);
 
             company = new QLineEdit(&dialog);
             form.addRow("Firma", company);
@@ -486,6 +516,12 @@ void TravelAgencyUI::onAddBooking() {
         QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
 
         if (dialog.exec() == QDialog::Accepted ) {
+            for(auto l : dialog.findChildren<QLineEdit*>()){
+                if(l->text() == ""){
+                    QMessageBox::information(this, "Fehler", "Bitte fülle alle Felder aus um die Buchung hinzuzufügen");
+                    return;
+                }
+            }
             std::shared_ptr<Booking> booking;
             long travelId = travelAgency->getNextTravelId();
             std::string bookingId = QUuid::createUuid().toString().toStdString();
@@ -598,6 +634,11 @@ void TravelAgencyUI::onAddBooking() {
             hotel = new QLineEdit(&dialog);
             form.addRow("Hotel", hotel);
 
+            hotelLongitude = new QLineEdit(&dialog);
+            hotelLatitude = new QLineEdit(&dialog);
+            form.addRow("Hotel Breitengrad", hotelLongitude);
+            form.addRow("Hotel Längengrad", hotelLatitude);
+
             town = new QLineEdit(&dialog);
             form.addRow("Stadt", town);
 
@@ -613,8 +654,18 @@ void TravelAgencyUI::onAddBooking() {
             pickupLocation = new QLineEdit(&dialog);
             form.addRow("Abholort", pickupLocation);
 
+            pickupLongitude = new QLineEdit(&dialog);
+            pickupLatitude = new QLineEdit(&dialog);
+            form.addRow("Abholort Breitengrad", pickupLongitude);
+            form.addRow("Abholort Längengrad", pickupLatitude);
+
             returnLocation = new QLineEdit(&dialog);
             form.addRow("Rückgabeort", returnLocation);
+
+            returnLongitude = new QLineEdit(&dialog);
+            returnLatitude = new QLineEdit(&dialog);
+            form.addRow("Rückgabeort Breitengrad", returnLongitude);
+            form.addRow("Rückgabeort Längengrad", returnLatitude);
 
             company = new QLineEdit(&dialog);
             form.addRow("Firma", company);
@@ -630,6 +681,12 @@ void TravelAgencyUI::onAddBooking() {
         QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
 
         if (dialog.exec() == QDialog::Accepted ) {
+            for(auto l : dialog.findChildren<QLineEdit*>()){
+                if(l->text() == ""){
+                    QMessageBox::information(this, "Fehler", "Bitte fülle alle Felder aus um die Buchung hinzuzufügen");
+                    return;
+                }
+            }
             std::shared_ptr<Booking> booking;
             std::string bookingId = QUuid::createUuid().toString().toStdString();
             if(addedBooking == "Flight"){
@@ -642,6 +699,7 @@ void TravelAgencyUI::onAddBooking() {
                                                                                                                                                              + "," + toDestLatitude->text().toStdString()));
             }
             else if(addedBooking == "Hotel"){
+                std::cout << hotelLongitude->text().toStdString();
                 booking = std::shared_ptr<Booking>(new HotelBooking(bookingId,  price->value(), fromDate->date().toString("yyyyMMdd").toStdString(), toDate->date().toString("yyyyMMdd").toStdString(),
                                                                     travelId, hotel->text().toStdString(), town->text().toStdString(),
                                                                     roomType->currentText().toStdString(),
@@ -701,9 +759,14 @@ void TravelAgencyUI::onSaveBookings() {
     if(msgBox->clickedButton() == cancel){
         return;
     }
-    travelAgency->saveToJson(funktor, QFileDialog::getSaveFileName(this, tr("Datei speichern"),
+    if(travelAgency->saveToJson(funktor, QFileDialog::getSaveFileName(this, tr("Datei speichern"),
                                                                    "../",
-                                                                   tr("(*.json)")).toStdString());
+                                                                   tr("(*.json)")).toStdString())){
+        QMessageBox::information(this, "Buchungen gespeichert", "Die Buchungen wurden erfolgreich gespeichert");
+    }
+    else{
+        QMessageBox::information(this, "Fehler", "Die Buchungen konnten nicht gespeichert werden");
+    }
 }
 
 

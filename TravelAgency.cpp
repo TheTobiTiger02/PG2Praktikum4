@@ -525,7 +525,7 @@ std::string TravelAgency::getRoomTypeAcronym(std::string roomType) {
     }
 }
 
-void TravelAgency::saveToJson(SortFunktor funktor, std::string filePath) {
+bool TravelAgency::saveToJson(SortFunktor funktor, std::string filePath) {
     std::sort(allBookings.begin(), allBookings.end(), funktor);
 
     json bookingJson;
@@ -583,9 +583,12 @@ void TravelAgency::saveToJson(SortFunktor funktor, std::string filePath) {
     }
     //ofstream outputStream("../Studierende.json");
     ofstream outputStream(filePath);
-    if (!outputStream) cerr << "JSON Datei konnte nicht geoeffnet werden";
+    if (!outputStream) {
+        return false;
+    }
     outputStream << bookingListJson.dump(4);
     outputStream.close();
+    return true;
 
 }
 

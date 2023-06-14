@@ -11,7 +11,7 @@ HotelBooking::HotelBooking(std::string id, double price, std::string fromDate, s
                            std::string _hotel,
                            std::string _town, std::string _roomType, std::string hotelCoordinates) : Booking(id, price, fromDate, toDate, travelId),
                                                                        hotel(_hotel), town(_town), roomType(_roomType), hotelCoordinates(hotelCoordinates) {
-
+std::cout << "Test";
 
 }
 

@@ -68,7 +68,7 @@ public:
     std::string getIataCode(std::string airportName);
     void addBooking(std::shared_ptr<Booking> booking);
 
-    void saveToJson(SortFunktor funktor, std::string filePath);
+    bool saveToJson(SortFunktor funktor, std::string filePath);
 
     std::string getBookingClassChar(std::string bookingClass);
     std::string getRoomTypeAcronym(std::string roomType);
